@@ -1,0 +1,10 @@
+{
+  "name": "@pilotlog-sandbox/tests",
+  "version": "1.0.0",
+  "exports": "./run-tests.ts",
+  "dependencies": {
+    "@pilotlog-sandbox/contracts-evm": "workspace:*",
+    "pg": "^8.14.0",
+    "viem": "^2.21.0"
+  }
+}

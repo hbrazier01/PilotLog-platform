@@ -1,0 +1,60 @@
+diff --git a/src/process-blocks.ts b/src/process-blocks.ts
+index 2d2db39d3aa145112b4cf52220d6ac1b8cbb90c3..7c48f3a4fe703d5c3ea8f1afdb08e0f07cce2013 100644
+--- a/src/process-blocks.ts
++++ b/src/process-blocks.ts
+@@ -232,6 +232,8 @@ export function* processFinalizedBlock(
+             payload: { ...payload, blockHeight: value.blockNumber },
+           });
+         };
++        // Set a savepoint so a failing STF doesn't abort the outer transaction.
++        yield* until(dbConn.query("SAVEPOINT stf_input"));
+         try {
+           const input: BaseStfInput = {
+             blockTimestamp: value.timestamp,
+@@ -253,14 +255,29 @@ export function* processFinalizedBlock(
+             input,
+           );
+           yield* executeGeneratorStepByStep(gameSTFGenerator, dbConn);
+-          // STF succeeded: promote buffered events to the block buffer.
+-          // Failure path falls through the catch below and `inputEvents`
+-          // simply goes out of scope.
++          // STF succeeded: release savepoint and promote buffered events.
++          yield* until(dbConn.query("RELEASE SAVEPOINT stf_input"));
+           if (inputEvents.length > 0) {
+             blockEvents.push(...inputEvents);
+           }
+         } catch (err) {
+           success = false;
++          // [sql-debug] Log full pg error details to identify the FIRST SQL failure
++          // (not the downstream 25P02 "current transaction is aborted" symptom)
++          if (err && typeof err === "object") {
++            const pg = err as Record<string, unknown>;
++            console.error("[sql-debug] STF failed — first SQL error:");
++            console.error("[sql-debug]   code   :", pg["code"]);
++            console.error("[sql-debug]   message:", pg["message"]);
++            console.error("[sql-debug]   detail :", pg["detail"]);
++            console.error("[sql-debug]   hint   :", pg["hint"]);
++            console.error("[sql-debug]   where  :", pg["where"]);
++            console.error("[sql-debug]   query  :", pg["query"]);
++            console.error("[sql-debug]   stack  :", err instanceof Error ? err.stack : String(err));
++            console.error("[sql-debug]   payload:", JSON.stringify(data));
++          } else {
++            console.error("[sql-debug] STF failed (non-object error):", String(err));
++          }
+           log.remote(
+             ComponentNames.EFFECTSTREAM_SYNC,
+             "block-processing",
+@@ -272,6 +289,13 @@ export function* processFinalizedBlock(
+                 }. Payload: ${JSON.stringify(data)}`,
+               ),
+           );
++          // Roll back to the savepoint so the outer transaction stays live
++          // and subsequent queries (insertGameInputResult, etc.) don't fail with 25P02.
++          try {
++            yield* until(dbConn.query("ROLLBACK TO SAVEPOINT stf_input"));
++          } catch (_rbErr) {
++            // If there is no active savepoint the ROLLBACK is a no-op error; ignore it.
++          }
+         }
+         const conciseInputHash = `0x${
+           Array(64).fill(0).map(() =>

@@ -1,0 +1,24 @@
+{
+  "name": "pilotlog-sandbox",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "dev": "NODE_ENV=development bunx orchestrator start",
+    "start:mainnet": "bun run packages/node/main.mainnet.ts",
+    "test": "bun run packages/tests/run-tests.ts",
+    "build:evm": "bun run --filter @pilotlog-sandbox/contracts-evm build:mod",
+    "build:pgtypes": "bun run --filter @pilotlog-sandbox/database pgtyped:update"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.3.14",
+    "@effectstream/orchestrator": "0.100.20",
+    "@midnight-ntwrk/wallet-sdk-address-format": "3.1.0",
+    "wait-on": "8.0.3"
+  },
+  "effectstream": {
+    "default": "start.dev.ts"
+  },
+  "patchedDependencies": {
+    "@effectstream/runtime@0.100.20": "patches/@effectstream%2Fruntime@0.100.20.patch"
+  }
+}
