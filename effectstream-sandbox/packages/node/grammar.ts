@@ -9,4 +9,31 @@ export const grammar = {
     ["airportTo", Type.String({ maxLength: 8 })],
     ["totalTime", Type.Number({ minimum: 0, maximum: 999 })],
   ],
+  create_student_request: [
+    ["walletAddress", Type.String({ maxLength: 256 })],
+    ["aircraftIdent", Type.String({ maxLength: 16 })],
+    ["notes", Type.String({ maxLength: 1024 })],
+  ],
+  accept_student_request: [
+    ["walletAddress", Type.String({ maxLength: 256 })],
+    ["requestId", Type.Integer({ minimum: 1 })],
+  ],
+  withdraw_student_request: [
+    ["walletAddress", Type.String({ maxLength: 256 })],
+    ["requestId", Type.Integer({ minimum: 1 })],
+  ],
+  create_cfi_availability: [
+    ["walletAddress", Type.String({ maxLength: 256 })],
+    ["aircraftIdent", Type.String({ maxLength: 16 })],
+    ["hourlyRate", Type.Number({ minimum: 0 })],
+    ["notes", Type.String({ maxLength: 1024 })],
+  ],
+  accept_cfi_availability: [
+    ["walletAddress", Type.String({ maxLength: 256 })],
+    ["availabilityId", Type.Integer({ minimum: 1 })],
+  ],
+  withdraw_cfi_availability: [
+    ["walletAddress", Type.String({ maxLength: 256 })],
+    ["availabilityId", Type.Integer({ minimum: 1 })],
+  ],
 } as const satisfies GrammarDefinition;
