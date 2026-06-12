@@ -1657,7 +1657,7 @@ app.get("/", (_req, res) => {
     <div class="brand">PilotLog</div>
     <div class="nav">
       ${walletNavHtml(walletSession, identity)}
-      ${walletConnected ? `<a href="/pilot-report">Pilot Report →</a>` : ''}
+      ${walletConnected ? `<a href="/pilot-report">Pilot Report →</a>` : ''} <a href="/opportunities">Opportunities</a>
     </div>
   </div>
 
@@ -7872,6 +7872,438 @@ app.get("/progression", (_req, res) => {
     Generated ${new Date(asOf).toLocaleString()} · FAA Part 61 ASEL Requirements Engine · ${prog.certificate || 'PPL-ASEL'}
   </div>
 </div>
+</body>
+</html>`);
+});
+
+// ── Effectstream Opportunities proxy routes ────────────────────────────────
+// Forwards reads to the Effectstream sync node API (port 9999 by default).
+const EFFECTSTREAM_API = process.env.EFFECTSTREAM_API_URL || "http://localhost:9999/api";
+
+app.get("/api/effectstream/student-requests", async (_req, res) => {
+  try {
+    const r = await fetch(`${EFFECTSTREAM_API}/student-requests`);
+    const data = await r.json();
+    res.json(data);
+  } catch (e) {
+    res.status(502).json({ error: "Effectstream API unavailable", details: e.message });
+  }
+});
+
+app.get("/api/effectstream/cfi-availability", async (_req, res) => {
+  try {
+    const r = await fetch(`${EFFECTSTREAM_API}/cfi-availability`);
+    const data = await r.json();
+    res.json(data);
+  } catch (e) {
+    res.status(502).json({ error: "Effectstream API unavailable", details: e.message });
+  }
+});
+
+// ── Opportunities page ─────────────────────────────────────────────────────
+app.get("/opportunities", (_req, res) => {
+  const walletSession = readWalletSession();
+  const walletConnected = !!walletSession;
+  const identity = readIdentity();
+
+  res.set("Content-Type", "text/html");
+  res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Opportunities — PilotLog</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1117; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid #1e2740; background: #0d1117; }
+  .brand { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: .03em; }
+  .nav a { color: #9aa3ff; text-decoration: none; font-size: 14px; margin-left: 16px; }
+  .nav a:hover { color: #fff; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 32px 20px; }
+  .page-title { font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .page-sub { color: #6b7280; font-size: 14px; margin-bottom: 28px; }
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid #1e2740; margin-bottom: 24px; }
+  .tab-btn { background: none; border: none; color: #6b7280; font-size: 14px; font-weight: 600; padding: 10px 20px; cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s; }
+  .tab-btn:hover { color: #9aa3ff; }
+  .tab-btn.active { color: #9aa3ff; border-bottom-color: #9aa3ff; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .card-row { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+  .opp-card { background: #121624; border: 1px solid #1e2740; border-radius: 12px; padding: 16px 20px; }
+  .opp-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .opp-card-id { font-size: 11px; color: #4b5563; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+  .opp-card-aircraft { font-size: 15px; font-weight: 700; color: #e2e8f0; }
+  .opp-card-meta { font-size: 13px; color: #9aa3ff; margin-bottom: 6px; }
+  .opp-card-notes { font-size: 13px; color: #6b7280; margin-bottom: 12px; }
+  .opp-actions { display: flex; gap: 8px; }
+  .btn { padding: 6px 14px; border-radius: 6px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+  .btn:hover { opacity: .85; }
+  .btn-accept { background: #14532d; color: #22c55e; }
+  .btn-withdraw { background: #1f1012; color: #f87171; }
+  .btn-primary { background: #1e3a5f; color: #60a5fa; }
+  .create-form { background: #121624; border: 1px solid #1e2740; border-radius: 12px; padding: 20px; margin-bottom: 24px; }
+  .create-form h3 { font-size: 14px; font-weight: 700; color: #9aa3ff; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 16px; }
+  .form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 160px; }
+  .form-group label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #6b7280; }
+  .form-group input, .form-group textarea { background: #0d1117; border: 1px solid #1e2740; border-radius: 6px; color: #e2e8f0; font-size: 13px; padding: 8px 10px; outline: none; }
+  .form-group input:focus, .form-group textarea:focus { border-color: #3b4fd6; }
+  .form-group textarea { resize: vertical; min-height: 64px; }
+  .empty-state { text-align: center; color: #4b5563; padding: 48px 0; font-size: 14px; }
+  .status-bar { background: #0a0e1a; border: 1px solid #1e2740; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #6b7280; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #4b5563; flex-shrink: 0; }
+  .status-dot.online { background: #22c55e; }
+  .wallet-warning { background: #1a1505; border: 1px solid #78350f; border-radius: 10px; padding: 16px 20px; color: #fbbf24; font-size: 14px; margin-bottom: 24px; }
+  .effectstream-badge { display: inline-flex; align-items: center; gap: 6px; background: #1a1f30; border: 1px solid #2d3748; border-radius: 20px; padding: 3px 10px; font-size: 11px; color: #60a5fa; font-weight: 600; margin-bottom: 20px; }
+  #tx-status { margin-top: 10px; font-size: 13px; padding: 8px 12px; border-radius: 6px; display: none; }
+  #tx-status.success { background: #14532d; color: #22c55e; display: block; }
+  #tx-status.error { background: #1f1012; color: #f87171; display: block; }
+  #tx-status.pending { background: #1a1f30; color: #60a5fa; display: block; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">PilotLog</div>
+  <div class="nav">
+    ${walletNavHtml(walletSession, identity)}
+    <a href="/">Dashboard</a>
+    <a href="/opportunities" style="color:#fff">Opportunities</a>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="effectstream-badge">⚡ Powered by Effectstream</div>
+  <div class="page-title">Opportunities</div>
+  <div class="page-sub">Student flight training requests and CFI availability, anchored to Effectstream state.</div>
+
+  <div class="status-bar">
+    <div class="status-dot" id="es-status-dot"></div>
+    <span id="es-status-text">Connecting to Effectstream...</span>
+  </div>
+
+  ${!walletConnected ? `<div class="wallet-warning">⚠ Connect your wallet to submit Effectstream transactions. Read-only view while disconnected.</div>` : ''}
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('student')">Student Requests</button>
+    <button class="tab-btn" onclick="switchTab('cfi')">CFI Availability</button>
+  </div>
+
+  <!-- Student Requests Tab -->
+  <div class="tab-content active" id="tab-student">
+    <div class="create-form" id="create-student-form" style="${walletConnected ? '' : 'display:none'}">
+      <h3>Post Student Request</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Aircraft Ident</label>
+          <input id="sr-aircraft" type="text" placeholder="e.g. N12345" maxlength="16">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="sr-notes" placeholder="Training goals, schedule, location..."></textarea>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="createStudentRequest()">Submit via Effectstream</button>
+      <div id="sr-tx-status" class="tx-status-msg" style="margin-top:10px;font-size:13px;display:none;"></div>
+    </div>
+
+    <div class="card-row" id="student-requests-list">
+      <div class="empty-state">Loading student requests...</div>
+    </div>
+  </div>
+
+  <!-- CFI Availability Tab -->
+  <div class="tab-content" id="tab-cfi">
+    <div class="create-form" id="create-cfi-form" style="${walletConnected ? '' : 'display:none'}">
+      <h3>Post CFI Availability</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Aircraft Ident</label>
+          <input id="cfi-aircraft" type="text" placeholder="e.g. N12345" maxlength="16">
+        </div>
+        <div class="form-group">
+          <label>Hourly Rate ($)</label>
+          <input id="cfi-rate" type="number" placeholder="e.g. 120" min="0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="cfi-notes" placeholder="Availability, location, endorsements offered..."></textarea>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="createCfiAvailability()">Submit via Effectstream</button>
+      <div id="cfi-tx-status" class="tx-status-msg" style="margin-top:10px;font-size:13px;display:none;"></div>
+    </div>
+
+    <div class="card-row" id="cfi-availability-list">
+      <div class="empty-state">Loading CFI availability...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Tab switching ──────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+
+// ── Effectstream API base (proxied through PilotLog) ──────────────────────
+const ES_PROXY = '/api/effectstream';
+
+// ── Status check ──────────────────────────────────────────────────────────
+async function checkEffectstreamStatus() {
+  try {
+    const r = await fetch(ES_PROXY + '/student-requests');
+    if (r.ok) {
+      document.getElementById('es-status-dot').classList.add('online');
+      document.getElementById('es-status-text').textContent = 'Effectstream sync node online · ' + new Date().toLocaleTimeString();
+    } else {
+      document.getElementById('es-status-text').textContent = 'Effectstream API error (' + r.status + ')';
+    }
+  } catch {
+    document.getElementById('es-status-text').textContent = 'Effectstream sync node offline';
+  }
+}
+
+// ── Render helpers ─────────────────────────────────────────────────────────
+function shortAddr(addr) {
+  if (!addr || addr.length < 12) return addr;
+  return addr.slice(0, 6) + '...' + addr.slice(-4);
+}
+
+function renderStudentRequests(requests) {
+  const container = document.getElementById('student-requests-list');
+  if (!requests || requests.length === 0) {
+    container.innerHTML = '<div class="empty-state">No active student requests. Be the first to post one.</div>';
+    return;
+  }
+  container.innerHTML = requests.map(r => \`
+    <div class="opp-card" data-request-id="\${r.request_id}">
+      <div class="opp-card-header">
+        <span class="opp-card-id">Request #\${r.request_id}</span>
+        <span class="opp-card-aircraft">\${r.aircraft_ident}</span>
+      </div>
+      <div class="opp-card-meta">Student: \${shortAddr(r.wallet_address)}</div>
+      <div class="opp-card-notes">\${r.notes || '—'}</div>
+      <div class="opp-actions">
+        <button class="btn btn-accept" onclick="acceptStudentRequest(\${r.request_id})">Accept</button>
+        <button class="btn btn-withdraw" onclick="withdrawStudentRequest(\${r.request_id}, '\${r.wallet_address}')">Withdraw</button>
+      </div>
+    </div>
+  \`).join('');
+}
+
+function renderCfiAvailability(availability) {
+  const container = document.getElementById('cfi-availability-list');
+  if (!availability || availability.length === 0) {
+    container.innerHTML = '<div class="empty-state">No active CFI availability. Post yours above.</div>';
+    return;
+  }
+  container.innerHTML = availability.map(a => \`
+    <div class="opp-card" data-availability-id="\${a.availability_id}">
+      <div class="opp-card-header">
+        <span class="opp-card-id">Availability #\${a.availability_id}</span>
+        <span class="opp-card-aircraft">\${a.aircraft_ident}</span>
+      </div>
+      <div class="opp-card-meta">CFI: \${shortAddr(a.wallet_address)} · $\${parseFloat(a.hourly_rate).toFixed(0)}/hr</div>
+      <div class="opp-card-notes">\${a.notes || '—'}</div>
+      <div class="opp-actions">
+        <button class="btn btn-accept" onclick="acceptCfiAvailability(\${a.availability_id})">Book</button>
+        <button class="btn btn-withdraw" onclick="withdrawCfiAvailability(\${a.availability_id}, '\${a.wallet_address}')">Withdraw</button>
+      </div>
+    </div>
+  \`).join('');
+}
+
+// ── Data loading ──────────────────────────────────────────────────────────
+async function loadStudentRequests() {
+  try {
+    const r = await fetch(ES_PROXY + '/student-requests');
+    const data = await r.json();
+    renderStudentRequests(data.studentRequests || []);
+  } catch (e) {
+    document.getElementById('student-requests-list').innerHTML =
+      '<div class="empty-state" style="color:#f87171">Failed to load: ' + e.message + '</div>';
+  }
+}
+
+async function loadCfiAvailability() {
+  try {
+    const r = await fetch(ES_PROXY + '/cfi-availability');
+    const data = await r.json();
+    renderCfiAvailability(data.cfiAvailability || []);
+  } catch (e) {
+    document.getElementById('cfi-availability-list').innerHTML =
+      '<div class="empty-state" style="color:#f87171">Failed to load: ' + e.message + '</div>';
+  }
+}
+
+// ── Transaction helpers ───────────────────────────────────────────────────
+function setTxStatus(elId, type, msg) {
+  const el = document.getElementById(elId);
+  el.style.display = 'block';
+  el.style.background = type === 'success' ? '#14532d' : type === 'error' ? '#1f1012' : '#1a1f30';
+  el.style.color = type === 'success' ? '#22c55e' : type === 'error' ? '#f87171' : '#60a5fa';
+  el.style.padding = '8px 12px';
+  el.style.borderRadius = '6px';
+  el.textContent = msg;
+}
+
+// ── EVM wallet / Effectstream transaction helpers ─────────────────────────
+// Uses window.effectstream (from effectstream-sandbox compiled bundle loaded below).
+// If the sandbox frontend is not running, falls back to a clear error message.
+
+async function esLogin() {
+  if (!window.effectstream) throw new Error('Effectstream SDK not loaded. Is the sandbox frontend running at http://localhost:10599?');
+  return await window.effectstream.login();
+}
+
+async function submitEffectstreamTx(actionArray) {
+  if (!window.effectstream) throw new Error('Effectstream SDK not loaded. Is the sandbox frontend running at http://localhost:10599?');
+  if (!window.effectstream.getWallet()) {
+    await esLogin();
+  }
+  console.log('[tx-debug] submitEffectstreamTx', actionArray);
+  return await window.effectstream.sendAction(actionArray);
+}
+
+async function getConnectedEvmAddress() {
+  if (!window.effectstream) throw new Error('Effectstream SDK not loaded.');
+  let wallet = window.effectstream.getWallet();
+  if (!wallet) wallet = await esLogin();
+  const addr = wallet.provider.getAddress();
+  return addr.address ?? addr;
+}
+
+// ── Student Request actions ───────────────────────────────────────────────
+async function createStudentRequest() {
+  const aircraft = document.getElementById('sr-aircraft').value.trim();
+  const notes = document.getElementById('sr-notes').value.trim();
+  if (!aircraft) { alert('Aircraft ident required'); return; }
+
+  setTxStatus('sr-tx-status', 'pending', '⏳ Submitting to Effectstream...');
+  try {
+    const addr = await getConnectedEvmAddress();
+    const action = ['create_student_request', addr, aircraft, notes || ''];
+    console.log('[tx-debug] create_student_request', action);
+    await submitEffectstreamTx(action);
+    setTxStatus('sr-tx-status', 'success', '✓ Student request submitted via Effectstream');
+    document.getElementById('sr-aircraft').value = '';
+    document.getElementById('sr-notes').value = '';
+    setTimeout(() => loadStudentRequests(), 2000);
+  } catch (e) {
+    console.error('[tx-debug] create_student_request error', e);
+    setTxStatus('sr-tx-status', 'error', '✗ ' + e.message);
+  }
+}
+
+async function acceptStudentRequest(requestId) {
+  setTxStatus('sr-tx-status', 'pending', '⏳ Submitting accept to Effectstream...');
+  try {
+    const addr = await getConnectedEvmAddress();
+    const action = ['accept_student_request', addr, requestId];
+    console.log('[tx-debug] accept_student_request', action);
+    await submitEffectstreamTx(action);
+    setTxStatus('sr-tx-status', 'success', '✓ Accepted student request #' + requestId);
+    setTimeout(() => loadStudentRequests(), 2000);
+  } catch (e) {
+    console.error('[tx-debug] accept_student_request error', e);
+    setTxStatus('sr-tx-status', 'error', '✗ ' + e.message);
+  }
+}
+
+async function withdrawStudentRequest(requestId, ownerAddr) {
+  setTxStatus('sr-tx-status', 'pending', '⏳ Submitting withdrawal to Effectstream...');
+  try {
+    const addr = await getConnectedEvmAddress();
+    const action = ['withdraw_student_request', addr, requestId];
+    console.log('[tx-debug] withdraw_student_request', action);
+    await submitEffectstreamTx(action);
+    setTxStatus('sr-tx-status', 'success', '✓ Withdrew student request #' + requestId);
+    setTimeout(() => loadStudentRequests(), 2000);
+  } catch (e) {
+    console.error('[tx-debug] withdraw_student_request error', e);
+    setTxStatus('sr-tx-status', 'error', '✗ ' + e.message);
+  }
+}
+
+// ── CFI Availability actions ──────────────────────────────────────────────
+async function createCfiAvailability() {
+  const aircraft = document.getElementById('cfi-aircraft').value.trim();
+  const rate = parseFloat(document.getElementById('cfi-rate').value);
+  const notes = document.getElementById('cfi-notes').value.trim();
+  if (!aircraft) { alert('Aircraft ident required'); return; }
+  if (isNaN(rate) || rate < 0) { alert('Valid hourly rate required'); return; }
+
+  setTxStatus('cfi-tx-status', 'pending', '⏳ Submitting to Effectstream...');
+  try {
+    const addr = await getConnectedEvmAddress();
+    const action = ['create_cfi_availability', addr, aircraft, rate, notes || ''];
+    console.log('[tx-debug] create_cfi_availability', action);
+    await submitEffectstreamTx(action);
+    setTxStatus('cfi-tx-status', 'success', '✓ CFI availability posted via Effectstream');
+    document.getElementById('cfi-aircraft').value = '';
+    document.getElementById('cfi-rate').value = '';
+    document.getElementById('cfi-notes').value = '';
+    setTimeout(() => loadCfiAvailability(), 2000);
+  } catch (e) {
+    console.error('[tx-debug] create_cfi_availability error', e);
+    setTxStatus('cfi-tx-status', 'error', '✗ ' + e.message);
+  }
+}
+
+async function acceptCfiAvailability(availabilityId) {
+  setTxStatus('cfi-tx-status', 'pending', '⏳ Submitting booking to Effectstream...');
+  try {
+    const addr = await getConnectedEvmAddress();
+    const action = ['accept_cfi_availability', addr, availabilityId];
+    console.log('[tx-debug] accept_cfi_availability', action);
+    await submitEffectstreamTx(action);
+    setTxStatus('cfi-tx-status', 'success', '✓ Booked CFI availability #' + availabilityId);
+    setTimeout(() => loadCfiAvailability(), 2000);
+  } catch (e) {
+    console.error('[tx-debug] accept_cfi_availability error', e);
+    setTxStatus('cfi-tx-status', 'error', '✗ ' + e.message);
+  }
+}
+
+async function withdrawCfiAvailability(availabilityId, ownerAddr) {
+  setTxStatus('cfi-tx-status', 'pending', '⏳ Submitting withdrawal to Effectstream...');
+  try {
+    const addr = await getConnectedEvmAddress();
+    const action = ['withdraw_cfi_availability', addr, availabilityId];
+    console.log('[tx-debug] withdraw_cfi_availability', action);
+    await submitEffectstreamTx(action);
+    setTxStatus('cfi-tx-status', 'success', '✓ Withdrew CFI availability #' + availabilityId);
+    setTimeout(() => loadCfiAvailability(), 2000);
+  } catch (e) {
+    console.error('[tx-debug] withdraw_cfi_availability error', e);
+    setTxStatus('cfi-tx-status', 'error', '✗ ' + e.message);
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+// Try to load the effectstream SDK bundle from the sandbox frontend.
+// The sandbox must be running at http://localhost:10599 (bun run dev in effectstream-sandbox).
+(function loadEffectstreamSDK() {
+  const script = document.createElement('script');
+  script.src = 'http://localhost:10599/min.js';
+  script.onload = () => { console.log('[effectstream] SDK bundle loaded'); };
+  script.onerror = () => { console.warn('[effectstream] SDK bundle unavailable — run effectstream-sandbox for transaction submission'); };
+  document.head.appendChild(script);
+})();
+
+checkEffectstreamStatus();
+loadStudentRequests();
+loadCfiAvailability();
+setInterval(() => { loadStudentRequests(); loadCfiAvailability(); checkEffectstreamStatus(); }, 10000);
+</script>
 </body>
 </html>`);
 });

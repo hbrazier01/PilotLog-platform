@@ -38,3 +38,13 @@ VALUES (:availability_id!, :wallet_address!, :student_wallet, :aircraft_ident!, 
 /* @name deleteCfiAvailability */
 DELETE FROM cfi_availability
 WHERE availability_id = :availability_id!;
+
+/* @name getAllStudentRequests */
+SELECT * FROM student_request
+ORDER BY request_id DESC
+LIMIT 100;
+
+/* @name getAllCfiAvailability */
+SELECT * FROM cfi_availability
+ORDER BY availability_id DESC
+LIMIT 100;

@@ -40,8 +40,20 @@ async function sendTransactionEffectstreamL2(input) {
   );
 }
 
+// Generic action sender — accepts any grammar action array e.g. ["create_student_request", addr, aircraft, notes]
+async function sendAction(actionArray) {
+  if (!wallet) throw new Error("Login first via effectstream.login()");
+  return await sendTransaction(
+    wallet,
+    actionArray,
+    effectstreamConfig,
+    "wait-effectstream-processed",
+  );
+}
+
 window.effectstream = {
   login,
   sendTransactionEffectstreamL2,
+  sendAction,
   getWallet: () => wallet,
 };

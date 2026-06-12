@@ -303,3 +303,66 @@ const deleteCfiAvailabilityIR: any = {"usedParamSet":{"availability_id":true},"p
 export const deleteCfiAvailability = new PreparedQuery<IDeleteCfiAvailabilityParams,IDeleteCfiAvailabilityResult>(deleteCfiAvailabilityIR);
 
 
+
+
+/** 'GetAllStudentRequests' parameters type */
+export type IGetAllStudentRequestsParams = void;
+
+/** 'GetAllStudentRequests' return type */
+export interface IGetAllStudentRequestsResult {
+  aircraft_ident: string;
+  created_at: Date;
+  notes: string;
+  request_id: number;
+  wallet_address: string;
+}
+
+/** 'GetAllStudentRequests' query type */
+export interface IGetAllStudentRequestsQuery {
+  params: IGetAllStudentRequestsParams;
+  result: IGetAllStudentRequestsResult;
+}
+
+const getAllStudentRequestsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT * FROM student_request\nORDER BY request_id DESC\nLIMIT 100"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT * FROM student_request
+ * ORDER BY request_id DESC
+ * LIMIT 100
+ * ```
+ */
+export const getAllStudentRequests = new PreparedQuery<IGetAllStudentRequestsParams,IGetAllStudentRequestsResult>(getAllStudentRequestsIR);
+
+
+/** 'GetAllCfiAvailability' parameters type */
+export type IGetAllCfiAvailabilityParams = void;
+
+/** 'GetAllCfiAvailability' return type */
+export interface IGetAllCfiAvailabilityResult {
+  aircraft_ident: string;
+  availability_id: number;
+  created_at: Date;
+  hourly_rate: string;
+  notes: string;
+  wallet_address: string;
+}
+
+/** 'GetAllCfiAvailability' query type */
+export interface IGetAllCfiAvailabilityQuery {
+  params: IGetAllCfiAvailabilityParams;
+  result: IGetAllCfiAvailabilityResult;
+}
+
+const getAllCfiAvailabilityIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT * FROM cfi_availability\nORDER BY availability_id DESC\nLIMIT 100"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT * FROM cfi_availability
+ * ORDER BY availability_id DESC
+ * LIMIT 100
+ * ```
+ */
+export const getAllCfiAvailability = new PreparedQuery<IGetAllCfiAvailabilityParams,IGetAllCfiAvailabilityResult>(getAllCfiAvailabilityIR);
