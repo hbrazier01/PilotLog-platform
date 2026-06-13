@@ -36,22 +36,25 @@ export const grammar = {
     ["walletAddress", Type.String({ maxLength: 256 })],
     ["availabilityId", Type.Integer({ minimum: 1 })],
   ],
+  // walletAddress removed: the STM reads signerAddress from the chain-verified
+  // transaction signer instead of trusting a user-supplied field.
   create_profile: [
-    ["walletAddress", Type.String({ maxLength: 256 })],
     ["displayName", Type.String({ maxLength: 128 })],
     ["pilotPhase", Type.String({ maxLength: 64 })],
     ["notes", Type.String({ maxLength: 1024 })],
   ],
   update_profile: [
-    ["walletAddress", Type.String({ maxLength: 256 })],
     ["displayName", Type.String({ maxLength: 128 })],
     ["pilotPhase", Type.String({ maxLength: 64 })],
     ["notes", Type.String({ maxLength: 1024 })],
   ],
+  // chain is user-supplied (which chain the primary wallet is on); the wallet
+  // address itself comes from signerAddress.
   create_identity: [
-    ["walletAddress", Type.String({ maxLength: 256 })],
     ["chain", Type.String({ maxLength: 64 })],
   ],
+  // link_wallet: signer proves ownership of the identity; walletAddress is the
+  // NEW wallet being added (legitimately user-supplied data, not the signer).
   link_wallet: [
     ["identityId", Type.String({ maxLength: 64 })],
     ["chain", Type.String({ maxLength: 64 })],

@@ -123,7 +123,11 @@ async function test() {
     const { apiTest } = await import("./stm/api.test.ts");
     await apiTest();
 
-    console.log("\n--- Phase C: Offer File (Student Request + CFI Availability) ---\n");
+    console.log("\n--- Phase C: Identity Security ---\n");
+    const { identityTest } = await import("./stm/identity.test.ts");
+    await identityTest(db);
+
+    console.log("\n--- Phase D: Offer File (Student Request + CFI Availability) ---\n");
     const { offerFileTest } = await import("./stm/offer-file.test.ts");
     await offerFileTest(db);
 

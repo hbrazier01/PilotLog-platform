@@ -175,11 +175,14 @@ stm.addStateTransition("withdraw_cfi_availability", function* (data) {
 });
 
 stm.addStateTransition("create_profile", function* (data) {
-  const { parsedInput } = data;
+  const { parsedInput, signerAddress } = data;
+  // signerAddress is set by the Effectstream runtime from the verified chain
+  // transaction signer — it cannot be overridden by the caller's payload.
+  // Any walletAddress field the browser might have submitted is ignored here.
+  const signerWallet = signerAddress!;
 
-  // Resolve or create identity for this wallet before upserting profile.
   const existing = yield* World.resolve(getIdentityByWallet, {
-    wallet_address: parsedInput.walletAddress,
+    wallet_address: signerWallet,
     chain: "midnight",
   });
 
@@ -188,20 +191,20 @@ stm.addStateTransition("create_profile", function* (data) {
     identityId = existing[0].identity_id;
   } else {
     const created = yield* World.resolve(createIdentity, {
-      primary_wallet: parsedInput.walletAddress,
+      primary_wallet: signerWallet,
     });
     identityId = created[0].identity_id;
     yield* World.resolve(linkWallet, {
       identity_id: identityId,
       chain: "midnight",
-      wallet_address: parsedInput.walletAddress,
+      wallet_address: signerWallet,
       verification_status: "verified",
     });
   }
 
   yield* World.resolve(upsertProfileByIdentityId, {
     identity_id: identityId,
-    wallet_address: parsedInput.walletAddress,
+    wallet_address: signerWallet,
     display_name: parsedInput.displayName,
     pilot_phase: parsedInput.pilotPhase,
     notes: parsedInput.notes,
@@ -209,10 +212,11 @@ stm.addStateTransition("create_profile", function* (data) {
 });
 
 stm.addStateTransition("update_profile", function* (data) {
-  const { parsedInput } = data;
+  const { parsedInput, signerAddress } = data;
+  const signerWallet = signerAddress!;
 
   const existing = yield* World.resolve(getIdentityByWallet, {
-    wallet_address: parsedInput.walletAddress,
+    wallet_address: signerWallet,
     chain: "midnight",
   });
 
@@ -221,20 +225,20 @@ stm.addStateTransition("update_profile", function* (data) {
     identityId = existing[0].identity_id;
   } else {
     const created = yield* World.resolve(createIdentity, {
-      primary_wallet: parsedInput.walletAddress,
+      primary_wallet: signerWallet,
     });
     identityId = created[0].identity_id;
     yield* World.resolve(linkWallet, {
       identity_id: identityId,
       chain: "midnight",
-      wallet_address: parsedInput.walletAddress,
+      wallet_address: signerWallet,
       verification_status: "verified",
     });
   }
 
   yield* World.resolve(upsertProfileByIdentityId, {
     identity_id: identityId,
-    wallet_address: parsedInput.walletAddress,
+    wallet_address: signerWallet,
     display_name: parsedInput.displayName,
     pilot_phase: parsedInput.pilotPhase,
     notes: parsedInput.notes,
@@ -242,11 +246,12 @@ stm.addStateTransition("update_profile", function* (data) {
 });
 
 stm.addStateTransition("create_identity", function* (data) {
-  const { parsedInput } = data;
+  const { parsedInput, signerAddress } = data;
+  const signerWallet = signerAddress!;
   const chain = parsedInput.chain || "midnight";
 
   const existing = yield* World.resolve(getIdentityByWallet, {
-    wallet_address: parsedInput.walletAddress,
+    wallet_address: signerWallet,
     chain,
   });
 
@@ -256,19 +261,38 @@ stm.addStateTransition("create_identity", function* (data) {
   }
 
   const created = yield* World.resolve(createIdentity, {
-    primary_wallet: parsedInput.walletAddress,
+    primary_wallet: signerWallet,
   });
 
   yield* World.resolve(linkWallet, {
     identity_id: created[0].identity_id,
     chain,
-    wallet_address: parsedInput.walletAddress,
+    wallet_address: signerWallet,
     verification_status: "verified",
   });
 });
 
 stm.addStateTransition("link_wallet", function* (data) {
-  const { parsedInput } = data;
+  const { parsedInput, signerAddress } = data;
+  const signerWallet = signerAddress!;
+
+  // Verify the signer owns the identity being modified.
+  const ownerRows = yield* World.resolve(getIdentityByWallet, {
+    wallet_address: signerWallet,
+    chain: "midnight",
+  });
+
+  if (!ownerRows || ownerRows.length === 0) {
+    throw new Error(
+      `link_wallet: signer ${signerWallet} has no identity — create_identity first`,
+    );
+  }
+
+  if (ownerRows[0].identity_id !== parsedInput.identityId) {
+    throw new Error(
+      `link_wallet: signer ${signerWallet} is not the owner of identity ${parsedInput.identityId}`,
+    );
+  }
 
   yield* World.resolve(linkWallet, {
     identity_id: parsedInput.identityId,
@@ -279,7 +303,26 @@ stm.addStateTransition("link_wallet", function* (data) {
 });
 
 stm.addStateTransition("unlink_wallet", function* (data) {
-  const { parsedInput } = data;
+  const { parsedInput, signerAddress } = data;
+  const signerWallet = signerAddress!;
+
+  // Verify the signer owns the identity being modified.
+  const ownerRows = yield* World.resolve(getIdentityByWallet, {
+    wallet_address: signerWallet,
+    chain: "midnight",
+  });
+
+  if (!ownerRows || ownerRows.length === 0) {
+    throw new Error(
+      `unlink_wallet: signer ${signerWallet} has no identity`,
+    );
+  }
+
+  if (ownerRows[0].identity_id !== parsedInput.identityId) {
+    throw new Error(
+      `unlink_wallet: signer ${signerWallet} is not the owner of identity ${parsedInput.identityId}`,
+    );
+  }
 
   yield* World.resolve(unlinkWallet, {
     identity_id: parsedInput.identityId,
