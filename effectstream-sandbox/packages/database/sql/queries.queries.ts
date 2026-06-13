@@ -8,8 +8,8 @@ export interface IInsertFlightParams {
   aircraft_ident: string;
   airport_from: string;
   airport_to: string;
+  identity_id: string;
   total_time: NumberOrString;
-  wallet_address: string;
 }
 
 /** 'InsertFlight' return type */
@@ -21,13 +21,13 @@ export interface IInsertFlightQuery {
   result: IInsertFlightResult;
 }
 
-const insertFlightIR: any = {"usedParamSet":{"wallet_address":true,"aircraft_ident":true,"airport_from":true,"airport_to":true,"total_time":true},"params":[{"name":"wallet_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":99,"b":114}]},{"name":"aircraft_ident","required":true,"transform":{"type":"scalar"},"locs":[{"a":117,"b":132}]},{"name":"airport_from","required":true,"transform":{"type":"scalar"},"locs":[{"a":135,"b":148}]},{"name":"airport_to","required":true,"transform":{"type":"scalar"},"locs":[{"a":151,"b":162}]},{"name":"total_time","required":true,"transform":{"type":"scalar"},"locs":[{"a":165,"b":176}]}],"statement":"INSERT INTO flights (wallet_address, aircraft_ident, airport_from, airport_to, total_time)\nVALUES (:wallet_address!, :aircraft_ident!, :airport_from!, :airport_to!, :total_time!)"};
+const insertFlightIR: any = {"usedParamSet":{"identity_id":true,"aircraft_ident":true,"airport_from":true,"airport_to":true,"total_time":true},"params":[{"name":"identity_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":96,"b":108}]},{"name":"aircraft_ident","required":true,"transform":{"type":"scalar"},"locs":[{"a":111,"b":126}]},{"name":"airport_from","required":true,"transform":{"type":"scalar"},"locs":[{"a":129,"b":142}]},{"name":"airport_to","required":true,"transform":{"type":"scalar"},"locs":[{"a":145,"b":156}]},{"name":"total_time","required":true,"transform":{"type":"scalar"},"locs":[{"a":159,"b":170}]}],"statement":"INSERT INTO flights (identity_id, aircraft_ident, airport_from, airport_to, total_time)\nVALUES (:identity_id!, :aircraft_ident!, :airport_from!, :airport_to!, :total_time!)"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO flights (wallet_address, aircraft_ident, airport_from, airport_to, total_time)
- * VALUES (:wallet_address!, :aircraft_ident!, :airport_from!, :airport_to!, :total_time!)
+ * INSERT INTO flights (identity_id, aircraft_ident, airport_from, airport_to, total_time)
+ * VALUES (:identity_id!, :aircraft_ident!, :airport_from!, :airport_to!, :total_time!)
  * ```
  */
 export const insertFlight = new PreparedQuery<IInsertFlightParams,IInsertFlightResult>(insertFlightIR);
@@ -43,8 +43,8 @@ export interface IGetAllFlightsResult {
   airport_to: string;
   created_at: Date;
   flight_id: number;
+  identity_id: string;
   total_time: string;
-  wallet_address: string;
 }
 
 /** 'GetAllFlights' query type */
@@ -69,8 +69,8 @@ export const getAllFlights = new PreparedQuery<IGetAllFlightsParams,IGetAllFligh
 /** 'InsertStudentRequest' parameters type */
 export interface IInsertStudentRequestParams {
   aircraft_ident: string;
+  identity_id: string;
   notes: string;
-  wallet_address: string;
 }
 
 /** 'InsertStudentRequest' return type */
@@ -82,13 +82,13 @@ export interface IInsertStudentRequestQuery {
   result: IInsertStudentRequestResult;
 }
 
-const insertStudentRequestIR: any = {"usedParamSet":{"wallet_address":true,"aircraft_ident":true,"notes":true},"params":[{"name":"wallet_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":76,"b":91}]},{"name":"aircraft_ident","required":true,"transform":{"type":"scalar"},"locs":[{"a":94,"b":109}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":112,"b":118}]}],"statement":"INSERT INTO student_request (wallet_address, aircraft_ident, notes)\nVALUES (:wallet_address!, :aircraft_ident!, :notes!)"};
+const insertStudentRequestIR: any = {"usedParamSet":{"identity_id":true,"aircraft_ident":true,"notes":true},"params":[{"name":"identity_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":73,"b":85}]},{"name":"aircraft_ident","required":true,"transform":{"type":"scalar"},"locs":[{"a":88,"b":103}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":106,"b":112}]}],"statement":"INSERT INTO student_request (identity_id, aircraft_ident, notes)\nVALUES (:identity_id!, :aircraft_ident!, :notes!)"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO student_request (wallet_address, aircraft_ident, notes)
- * VALUES (:wallet_address!, :aircraft_ident!, :notes!)
+ * INSERT INTO student_request (identity_id, aircraft_ident, notes)
+ * VALUES (:identity_id!, :aircraft_ident!, :notes!)
  * ```
  */
 export const insertStudentRequest = new PreparedQuery<IInsertStudentRequestParams,IInsertStudentRequestResult>(insertStudentRequestIR);
@@ -103,9 +103,9 @@ export interface IGetStudentRequestParams {
 export interface IGetStudentRequestResult {
   aircraft_ident: string;
   created_at: Date;
+  identity_id: string;
   notes: string;
   request_id: number;
-  wallet_address: string;
 }
 
 /** 'GetStudentRequest' query type */
@@ -129,11 +129,11 @@ export const getStudentRequest = new PreparedQuery<IGetStudentRequestParams,IGet
 /** 'InsertStudentRequestHistory' parameters type */
 export interface IInsertStudentRequestHistoryParams {
   aircraft_ident: string;
-  cfi_wallet?: string | null | void;
+  cfi_identity_id?: string | null | void;
   event: string;
+  identity_id: string;
   notes: string;
   request_id: number;
-  wallet_address: string;
 }
 
 /** 'InsertStudentRequestHistory' return type */
@@ -145,13 +145,13 @@ export interface IInsertStudentRequestHistoryQuery {
   result: IInsertStudentRequestHistoryResult;
 }
 
-const insertStudentRequestHistoryIR: any = {"usedParamSet":{"request_id":true,"wallet_address":true,"cfi_wallet":true,"aircraft_ident":true,"notes":true,"event":true},"params":[{"name":"request_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":115,"b":126}]},{"name":"wallet_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":129,"b":144}]},{"name":"cfi_wallet","required":false,"transform":{"type":"scalar"},"locs":[{"a":147,"b":157}]},{"name":"aircraft_ident","required":true,"transform":{"type":"scalar"},"locs":[{"a":160,"b":175}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":178,"b":184}]},{"name":"event","required":true,"transform":{"type":"scalar"},"locs":[{"a":187,"b":193}]}],"statement":"INSERT INTO student_request_history (request_id, wallet_address, cfi_wallet, aircraft_ident, notes, event)\nVALUES (:request_id!, :wallet_address!, :cfi_wallet, :aircraft_ident!, :notes!, :event!)"};
+const insertStudentRequestHistoryIR: any = {"usedParamSet":{"request_id":true,"identity_id":true,"cfi_identity_id":true,"aircraft_ident":true,"notes":true,"event":true},"params":[{"name":"request_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":117,"b":128}]},{"name":"identity_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":131,"b":143}]},{"name":"cfi_identity_id","required":false,"transform":{"type":"scalar"},"locs":[{"a":146,"b":161}]},{"name":"aircraft_ident","required":true,"transform":{"type":"scalar"},"locs":[{"a":164,"b":179}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":182,"b":188}]},{"name":"event","required":true,"transform":{"type":"scalar"},"locs":[{"a":191,"b":197}]}],"statement":"INSERT INTO student_request_history (request_id, identity_id, cfi_identity_id, aircraft_ident, notes, event)\nVALUES (:request_id!, :identity_id!, :cfi_identity_id, :aircraft_ident!, :notes!, :event!)"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO student_request_history (request_id, wallet_address, cfi_wallet, aircraft_ident, notes, event)
- * VALUES (:request_id!, :wallet_address!, :cfi_wallet, :aircraft_ident!, :notes!, :event!)
+ * INSERT INTO student_request_history (request_id, identity_id, cfi_identity_id, aircraft_ident, notes, event)
+ * VALUES (:request_id!, :identity_id!, :cfi_identity_id, :aircraft_ident!, :notes!, :event!)
  * ```
  */
 export const insertStudentRequestHistory = new PreparedQuery<IInsertStudentRequestHistoryParams,IInsertStudentRequestHistoryResult>(insertStudentRequestHistoryIR);
@@ -187,8 +187,8 @@ export const deleteStudentRequest = new PreparedQuery<IDeleteStudentRequestParam
 export interface IInsertCfiAvailabilityParams {
   aircraft_ident: string;
   hourly_rate: NumberOrString;
+  identity_id: string;
   notes: string;
-  wallet_address: string;
 }
 
 /** 'InsertCfiAvailability' return type */
@@ -200,13 +200,13 @@ export interface IInsertCfiAvailabilityQuery {
   result: IInsertCfiAvailabilityResult;
 }
 
-const insertCfiAvailabilityIR: any = {"usedParamSet":{"wallet_address":true,"aircraft_ident":true,"hourly_rate":true,"notes":true},"params":[{"name":"wallet_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":90,"b":105}]},{"name":"aircraft_ident","required":true,"transform":{"type":"scalar"},"locs":[{"a":108,"b":123}]},{"name":"hourly_rate","required":true,"transform":{"type":"scalar"},"locs":[{"a":126,"b":138}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":141,"b":147}]}],"statement":"INSERT INTO cfi_availability (wallet_address, aircraft_ident, hourly_rate, notes)\nVALUES (:wallet_address!, :aircraft_ident!, :hourly_rate!, :notes!)"};
+const insertCfiAvailabilityIR: any = {"usedParamSet":{"identity_id":true,"aircraft_ident":true,"hourly_rate":true,"notes":true},"params":[{"name":"identity_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":87,"b":99}]},{"name":"aircraft_ident","required":true,"transform":{"type":"scalar"},"locs":[{"a":102,"b":117}]},{"name":"hourly_rate","required":true,"transform":{"type":"scalar"},"locs":[{"a":120,"b":132}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":135,"b":141}]}],"statement":"INSERT INTO cfi_availability (identity_id, aircraft_ident, hourly_rate, notes)\nVALUES (:identity_id!, :aircraft_ident!, :hourly_rate!, :notes!)"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO cfi_availability (wallet_address, aircraft_ident, hourly_rate, notes)
- * VALUES (:wallet_address!, :aircraft_ident!, :hourly_rate!, :notes!)
+ * INSERT INTO cfi_availability (identity_id, aircraft_ident, hourly_rate, notes)
+ * VALUES (:identity_id!, :aircraft_ident!, :hourly_rate!, :notes!)
  * ```
  */
 export const insertCfiAvailability = new PreparedQuery<IInsertCfiAvailabilityParams,IInsertCfiAvailabilityResult>(insertCfiAvailabilityIR);
@@ -223,8 +223,8 @@ export interface IGetCfiAvailabilityResult {
   availability_id: number;
   created_at: Date;
   hourly_rate: string;
+  identity_id: string;
   notes: string;
-  wallet_address: string;
 }
 
 /** 'GetCfiAvailability' query type */
@@ -251,9 +251,9 @@ export interface IInsertCfiAvailabilityHistoryParams {
   availability_id: number;
   event: string;
   hourly_rate: NumberOrString;
+  identity_id: string;
   notes: string;
-  student_wallet?: string | null | void;
-  wallet_address: string;
+  student_identity_id?: string | null | void;
 }
 
 /** 'InsertCfiAvailabilityHistory' return type */
@@ -265,13 +265,13 @@ export interface IInsertCfiAvailabilityHistoryQuery {
   result: IInsertCfiAvailabilityHistoryResult;
 }
 
-const insertCfiAvailabilityHistoryIR: any = {"usedParamSet":{"availability_id":true,"wallet_address":true,"student_wallet":true,"aircraft_ident":true,"hourly_rate":true,"notes":true,"event":true},"params":[{"name":"availability_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":138,"b":154}]},{"name":"wallet_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":157,"b":172}]},{"name":"student_wallet","required":false,"transform":{"type":"scalar"},"locs":[{"a":175,"b":189}]},{"name":"aircraft_ident","required":true,"transform":{"type":"scalar"},"locs":[{"a":192,"b":207}]},{"name":"hourly_rate","required":true,"transform":{"type":"scalar"},"locs":[{"a":210,"b":222}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":225,"b":231}]},{"name":"event","required":true,"transform":{"type":"scalar"},"locs":[{"a":234,"b":240}]}],"statement":"INSERT INTO cfi_availability_history (availability_id, wallet_address, student_wallet, aircraft_ident, hourly_rate, notes, event)\nVALUES (:availability_id!, :wallet_address!, :student_wallet, :aircraft_ident!, :hourly_rate!, :notes!, :event!)"};
+const insertCfiAvailabilityHistoryIR: any = {"usedParamSet":{"availability_id":true,"identity_id":true,"student_identity_id":true,"aircraft_ident":true,"hourly_rate":true,"notes":true,"event":true},"params":[{"name":"availability_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":140,"b":156}]},{"name":"identity_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":159,"b":171}]},{"name":"student_identity_id","required":false,"transform":{"type":"scalar"},"locs":[{"a":174,"b":193}]},{"name":"aircraft_ident","required":true,"transform":{"type":"scalar"},"locs":[{"a":196,"b":211}]},{"name":"hourly_rate","required":true,"transform":{"type":"scalar"},"locs":[{"a":214,"b":226}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":229,"b":235}]},{"name":"event","required":true,"transform":{"type":"scalar"},"locs":[{"a":238,"b":244}]}],"statement":"INSERT INTO cfi_availability_history (availability_id, identity_id, student_identity_id, aircraft_ident, hourly_rate, notes, event)\nVALUES (:availability_id!, :identity_id!, :student_identity_id, :aircraft_ident!, :hourly_rate!, :notes!, :event!)"};
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO cfi_availability_history (availability_id, wallet_address, student_wallet, aircraft_ident, hourly_rate, notes, event)
- * VALUES (:availability_id!, :wallet_address!, :student_wallet, :aircraft_ident!, :hourly_rate!, :notes!, :event!)
+ * INSERT INTO cfi_availability_history (availability_id, identity_id, student_identity_id, aircraft_ident, hourly_rate, notes, event)
+ * VALUES (:availability_id!, :identity_id!, :student_identity_id, :aircraft_ident!, :hourly_rate!, :notes!, :event!)
  * ```
  */
 export const insertCfiAvailabilityHistory = new PreparedQuery<IInsertCfiAvailabilityHistoryParams,IInsertCfiAvailabilityHistoryResult>(insertCfiAvailabilityHistoryIR);
@@ -312,9 +312,9 @@ export type IGetAllStudentRequestsParams = void;
 export interface IGetAllStudentRequestsResult {
   aircraft_ident: string;
   created_at: Date;
+  identity_id: string;
   notes: string;
   request_id: number;
-  wallet_address: string;
 }
 
 /** 'GetAllStudentRequests' query type */
@@ -345,8 +345,8 @@ export interface IGetAllCfiAvailabilityResult {
   availability_id: number;
   created_at: Date;
   hourly_rate: string;
+  identity_id: string;
   notes: string;
-  wallet_address: string;
 }
 
 /** 'GetAllCfiAvailability' query type */

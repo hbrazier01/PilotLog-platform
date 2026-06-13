@@ -1,6 +1,6 @@
 /* @name insertFlight */
-INSERT INTO flights (wallet_address, aircraft_ident, airport_from, airport_to, total_time)
-VALUES (:wallet_address!, :aircraft_ident!, :airport_from!, :airport_to!, :total_time!);
+INSERT INTO flights (identity_id, aircraft_ident, airport_from, airport_to, total_time)
+VALUES (:identity_id!, :aircraft_ident!, :airport_from!, :airport_to!, :total_time!);
 
 /* @name getAllFlights */
 SELECT * FROM flights
@@ -8,32 +8,32 @@ ORDER BY flight_id DESC
 LIMIT 100;
 
 /* @name insertStudentRequest */
-INSERT INTO student_request (wallet_address, aircraft_ident, notes)
-VALUES (:wallet_address!, :aircraft_ident!, :notes!);
+INSERT INTO student_request (identity_id, aircraft_ident, notes)
+VALUES (:identity_id!, :aircraft_ident!, :notes!);
 
 /* @name getStudentRequest */
 SELECT * FROM student_request
 WHERE request_id = :request_id!;
 
 /* @name insertStudentRequestHistory */
-INSERT INTO student_request_history (request_id, wallet_address, cfi_wallet, aircraft_ident, notes, event)
-VALUES (:request_id!, :wallet_address!, :cfi_wallet, :aircraft_ident!, :notes!, :event!);
+INSERT INTO student_request_history (request_id, identity_id, cfi_identity_id, aircraft_ident, notes, event)
+VALUES (:request_id!, :identity_id!, :cfi_identity_id, :aircraft_ident!, :notes!, :event!);
 
 /* @name deleteStudentRequest */
 DELETE FROM student_request
 WHERE request_id = :request_id!;
 
 /* @name insertCfiAvailability */
-INSERT INTO cfi_availability (wallet_address, aircraft_ident, hourly_rate, notes)
-VALUES (:wallet_address!, :aircraft_ident!, :hourly_rate!, :notes!);
+INSERT INTO cfi_availability (identity_id, aircraft_ident, hourly_rate, notes)
+VALUES (:identity_id!, :aircraft_ident!, :hourly_rate!, :notes!);
 
 /* @name getCfiAvailability */
 SELECT * FROM cfi_availability
 WHERE availability_id = :availability_id!;
 
 /* @name insertCfiAvailabilityHistory */
-INSERT INTO cfi_availability_history (availability_id, wallet_address, student_wallet, aircraft_ident, hourly_rate, notes, event)
-VALUES (:availability_id!, :wallet_address!, :student_wallet, :aircraft_ident!, :hourly_rate!, :notes!, :event!);
+INSERT INTO cfi_availability_history (availability_id, identity_id, student_identity_id, aircraft_ident, hourly_rate, notes, event)
+VALUES (:availability_id!, :identity_id!, :student_identity_id, :aircraft_ident!, :hourly_rate!, :notes!, :event!);
 
 /* @name deleteCfiAvailability */
 DELETE FROM cfi_availability
