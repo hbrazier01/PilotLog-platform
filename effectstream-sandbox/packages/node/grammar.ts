@@ -36,4 +36,16 @@ export const grammar = {
     ["walletAddress", Type.String({ maxLength: 256 })],
     ["availabilityId", Type.Integer({ minimum: 1 })],
   ],
+  create_profile: [
+    ["walletAddress", Type.String({ maxLength: 256 })],
+    ["displayName", Type.String({ maxLength: 128 })],
+    ["pilotPhase", Type.String({ maxLength: 64 })],
+    ["notes", Type.String({ maxLength: 1024 })],
+  ],
+  update_profile: [
+    ["walletAddress", Type.String({ maxLength: 256 })],
+    ["displayName", Type.String({ maxLength: 128 })],
+    ["pilotPhase", Type.String({ maxLength: 64 })],
+    ["notes", Type.String({ maxLength: 1024 })],
+  ],
 } as const satisfies GrammarDefinition;

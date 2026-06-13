@@ -366,3 +366,104 @@ const getAllCfiAvailabilityIR: any = {"usedParamSet":{},"params":[],"statement":
  * ```
  */
 export const getAllCfiAvailability = new PreparedQuery<IGetAllCfiAvailabilityParams,IGetAllCfiAvailabilityResult>(getAllCfiAvailabilityIR);
+
+
+/** 'UpsertProfile' parameters type */
+export interface IUpsertProfileParams {
+  display_name: string;
+  notes: string;
+  pilot_phase: string;
+  wallet_address: string;
+}
+
+/** 'UpsertProfile' return type */
+export type IUpsertProfileResult = void;
+
+/** 'UpsertProfile' query type */
+export interface IUpsertProfileQuery {
+  params: IUpsertProfileParams;
+  result: IUpsertProfileResult;
+}
+
+const upsertProfileIR: any = {"usedParamSet":{"wallet_address":true,"display_name":true,"pilot_phase":true,"notes":true},"params":[{"name":"wallet_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":83,"b":98}]},{"name":"display_name","required":true,"transform":{"type":"scalar"},"locs":[{"a":101,"b":113}]},{"name":"pilot_phase","required":true,"transform":{"type":"scalar"},"locs":[{"a":116,"b":128}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":131,"b":137}]}],"statement":"INSERT INTO pilot_profile (wallet_address, display_name, pilot_phase, notes)\nVALUES (:wallet_address!, :display_name!, :pilot_phase!, :notes!)\nON CONFLICT (wallet_address) DO UPDATE SET\n  display_name = EXCLUDED.display_name,\n  pilot_phase  = EXCLUDED.pilot_phase,\n  notes        = EXCLUDED.notes,\n  updated_at   = NOW()"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO pilot_profile (wallet_address, display_name, pilot_phase, notes)
+ * VALUES (:wallet_address!, :display_name!, :pilot_phase!, :notes!)
+ * ON CONFLICT (wallet_address) DO UPDATE SET
+ *   display_name = EXCLUDED.display_name,
+ *   pilot_phase  = EXCLUDED.pilot_phase,
+ *   notes        = EXCLUDED.notes,
+ *   updated_at   = NOW()
+ * ```
+ */
+export const upsertProfile = new PreparedQuery<IUpsertProfileParams,IUpsertProfileResult>(upsertProfileIR);
+
+
+/** 'GetProfile' parameters type */
+export interface IGetProfileParams {
+  wallet_address: string;
+}
+
+/** 'GetProfile' return type */
+export interface IGetProfileResult {
+  created_at: Date;
+  display_name: string;
+  notes: string;
+  pilot_phase: string;
+  trust_score: number;
+  updated_at: Date;
+  wallet_address: string;
+}
+
+/** 'GetProfile' query type */
+export interface IGetProfileQuery {
+  params: IGetProfileParams;
+  result: IGetProfileResult;
+}
+
+const getProfileIR: any = {"usedParamSet":{"wallet_address":true},"params":[{"name":"wallet_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":44,"b":59}]}],"statement":"SELECT * FROM pilot_profile\nWHERE wallet_address = :wallet_address!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT * FROM pilot_profile
+ * WHERE wallet_address = :wallet_address!
+ * ```
+ */
+export const getProfile = new PreparedQuery<IGetProfileParams,IGetProfileResult>(getProfileIR);
+
+
+/** 'GetAllProfiles' parameters type */
+export type IGetAllProfilesParams = void;
+
+/** 'GetAllProfiles' return type */
+export interface IGetAllProfilesResult {
+  created_at: Date;
+  display_name: string;
+  notes: string;
+  pilot_phase: string;
+  trust_score: number;
+  updated_at: Date;
+  wallet_address: string;
+}
+
+/** 'GetAllProfiles' query type */
+export interface IGetAllProfilesQuery {
+  params: IGetAllProfilesParams;
+  result: IGetAllProfilesResult;
+}
+
+const getAllProfilesIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT * FROM pilot_profile\nORDER BY created_at DESC\nLIMIT 100"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT * FROM pilot_profile
+ * ORDER BY created_at DESC
+ * LIMIT 100
+ * ```
+ */
+export const getAllProfiles = new PreparedQuery<IGetAllProfilesParams,IGetAllProfilesResult>(getAllProfilesIR);

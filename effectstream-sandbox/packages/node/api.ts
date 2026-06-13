@@ -1,5 +1,5 @@
 import { runPreparedQuery } from "@effectstream/db";
-import { getAllFlights, getAllStudentRequests, getAllCfiAvailability } from "@pilotlog-sandbox/database";
+import { getAllFlights, getAllStudentRequests, getAllCfiAvailability, getProfile, getAllProfiles } from "@pilotlog-sandbox/database";
 import type { Pool } from "pg";
 import type { StartConfigApiRouter } from "@effectstream/runtime";
 import type { FastifyInstance } from "fastify";
@@ -30,6 +30,27 @@ export const apiRouter: StartConfigApiRouter = async function (
       "/cfi-availability",
     );
     reply.send({ cfiAvailability: result });
+  });
+
+  server.get("/profile/:walletAddress", async (request, reply) => {
+    const { walletAddress } = request.params as { walletAddress: string };
+    const rows = await runPreparedQuery(
+      getProfile.run({ wallet_address: walletAddress }, dbConn),
+      "/profile/:walletAddress",
+    );
+    if (!rows || rows.length === 0) {
+      reply.status(404).send({ error: "Profile not found" });
+      return;
+    }
+    reply.send({ profile: rows[0] });
+  });
+
+  server.get("/profiles", async (_request, reply) => {
+    const result = await runPreparedQuery(
+      getAllProfiles.run(undefined, dbConn),
+      "/profiles",
+    );
+    reply.send({ profiles: result });
   });
 
 };

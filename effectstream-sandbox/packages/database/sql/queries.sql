@@ -48,3 +48,21 @@ LIMIT 100;
 SELECT * FROM cfi_availability
 ORDER BY availability_id DESC
 LIMIT 100;
+
+/* @name upsertProfile */
+INSERT INTO pilot_profile (wallet_address, display_name, pilot_phase, notes)
+VALUES (:wallet_address!, :display_name!, :pilot_phase!, :notes!)
+ON CONFLICT (wallet_address) DO UPDATE SET
+  display_name = EXCLUDED.display_name,
+  pilot_phase  = EXCLUDED.pilot_phase,
+  notes        = EXCLUDED.notes,
+  updated_at   = NOW();
+
+/* @name getProfile */
+SELECT * FROM pilot_profile
+WHERE wallet_address = :wallet_address!;
+
+/* @name getAllProfiles */
+SELECT * FROM pilot_profile
+ORDER BY created_at DESC
+LIMIT 100;

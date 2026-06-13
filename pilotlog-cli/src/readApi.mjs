@@ -6229,7 +6229,23 @@ app.post("/wallet/connect", async (req, res) => {
       console.error("[db] wallet connect load error:", err.message);
     }
   }
-  res.json({ ok: true, session });
+
+  // Fetch Effectstream canonical profile for this wallet address.
+  // Non-blocking: failure is logged but does not break wallet connect.
+  let esProfile = null;
+  try {
+    const esUrl = `${process.env.EFFECTSTREAM_API_URL || "http://localhost:9999/api"}/profile/${encodeURIComponent(address)}`;
+    const esResp = await fetch(esUrl);
+    if (esResp.ok) {
+      const esData = await esResp.json();
+      esProfile = esData.profile || null;
+      console.log("[effectstream] canonical profile loaded for", address, esProfile ? `(${esProfile.display_name})` : "(none)");
+    }
+  } catch (esErr) {
+    console.log("[effectstream] profile fetch skipped (sync node offline):", esErr.message);
+  }
+
+  res.json({ ok: true, session, esProfile });
 });
 
 // POST /wallet/disconnect — clear wallet session
@@ -7900,6 +7916,30 @@ app.get("/api/effectstream/cfi-availability", async (_req, res) => {
   }
 });
 
+// Profile projection: GET /api/effectstream/profile/:walletAddress
+app.get("/api/effectstream/profile/:walletAddress", async (req, res) => {
+  const { walletAddress } = req.params;
+  try {
+    const r = await fetch(`${EFFECTSTREAM_API}/profile/${encodeURIComponent(walletAddress)}`);
+    if (r.status === 404) return res.status(404).json({ error: "Profile not found" });
+    const data = await r.json();
+    res.json(data);
+  } catch (e) {
+    res.status(502).json({ error: "Effectstream API unavailable", details: e.message });
+  }
+});
+
+// Profile projection: GET /api/effectstream/profiles
+app.get("/api/effectstream/profiles", async (_req, res) => {
+  try {
+    const r = await fetch(`${EFFECTSTREAM_API}/profiles`);
+    const data = await r.json();
+    res.json(data);
+  } catch (e) {
+    res.status(502).json({ error: "Effectstream API unavailable", details: e.message });
+  }
+});
+
 // ── Opportunities page ─────────────────────────────────────────────────────
 app.get("/opportunities", (_req, res) => {
   const walletSession = readWalletSession();
@@ -7983,6 +8023,45 @@ app.get("/opportunities", (_req, res) => {
   </div>
 
   ${!walletConnected ? `<div class="wallet-warning">⚠ Connect your wallet to submit Effectstream transactions. Read-only view while disconnected.</div>` : ''}
+
+  <!-- Canonical Identity Profile Card -->
+  <div id="profile-card" style="background:#1a1f30;border:1px solid #2d3748;border-radius:10px;padding:18px 22px;margin-bottom:24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <strong style="color:#e2e8f0;font-size:15px;">&#128100; Canonical Identity</strong>
+      <span id="profile-chain-badge" style="font-size:11px;color:#60a5fa;background:#1e2a40;border:1px solid #2d3748;border-radius:12px;padding:2px 10px;">Effectstream</span>
+    </div>
+    <div id="profile-display" style="color:#9ca3af;font-size:13px;">
+      ${walletConnected ? 'Loading profile from Effectstream...' : 'Connect wallet to load your canonical profile.'}
+    </div>
+    ${walletConnected ? `
+    <div id="profile-form" style="margin-top:14px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div>
+          <label style="font-size:12px;color:#9ca3af;display:block;margin-bottom:4px;">Display Name</label>
+          <input id="profile-display-name" type="text" placeholder="e.g. Jane Smith" maxlength="128" style="width:100%;background:#0f1117;border:1px solid #374151;color:#e2e8f0;border-radius:6px;padding:7px 10px;font-size:13px;">
+        </div>
+        <div>
+          <label style="font-size:12px;color:#9ca3af;display:block;margin-bottom:4px;">Pilot Phase</label>
+          <select id="profile-pilot-phase" style="width:100%;background:#0f1117;border:1px solid #374151;color:#e2e8f0;border-radius:6px;padding:7px 10px;font-size:13px;">
+            <option value="">-- Select --</option>
+            <option value="student_ppl">Student (PPL)</option>
+            <option value="ppl_complete">PPL Complete</option>
+            <option value="instrument_training">Instrument Training</option>
+            <option value="instrument_rated">Instrument Rated</option>
+            <option value="commercial">Commercial</option>
+            <option value="cfi">CFI</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:10px;">
+        <label style="font-size:12px;color:#9ca3af;display:block;margin-bottom:4px;">Notes</label>
+        <textarea id="profile-notes" placeholder="Brief bio or profile notes..." maxlength="1024" style="width:100%;background:#0f1117;border:1px solid #374151;color:#e2e8f0;border-radius:6px;padding:7px 10px;font-size:13px;height:60px;resize:vertical;"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="saveProfile()" style="font-size:13px;">Save Profile to Effectstream</button>
+      <div id="profile-tx-status" style="margin-top:8px;font-size:12px;display:none;"></div>
+    </div>
+    ` : ''}
+  </div>
 
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('student')">Student Requests</button>
@@ -8144,6 +8223,69 @@ async function loadCfiAvailability() {
   }
 }
 
+// ── Canonical Identity Profile ────────────────────────────────────────────
+async function loadProfile() {
+  const walletStatus = await fetch('/wallet/status').then(r => r.json()).catch(() => null);
+  if (!walletStatus || !walletStatus.connected || !walletStatus.session) return;
+  const addr = walletStatus.session.address;
+  const displayEl = document.getElementById('profile-display');
+  if (!displayEl) return;
+  try {
+    const r = await fetch(ES_PROXY + '/profile/' + encodeURIComponent(addr));
+    if (r.status === 404) {
+      displayEl.innerHTML = '<span style="color:#9ca3af;">No profile yet. Create one below.</span>';
+      return;
+    }
+    const data = await r.json();
+    const p = data.profile;
+    displayEl.innerHTML = \`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
+        <div><span style="color:#6b7280;">Name:</span> <span style="color:#e2e8f0;">\${p.display_name || '—'}</span></div>
+        <div><span style="color:#6b7280;">Phase:</span> <span style="color:#e2e8f0;">\${p.pilot_phase || '—'}</span></div>
+        <div><span style="color:#6b7280;">Trust Score:</span> <span style="color:#22c55e;">\${p.trust_score}</span></div>
+        <div><span style="color:#6b7280;">Updated:</span> <span style="color:#e2e8f0;">\${new Date(p.updated_at).toLocaleDateString()}</span></div>
+      </div>
+      \${p.notes ? \`<div style="margin-top:6px;color:#9ca3af;font-size:12px;">\${p.notes}</div>\` : ''}
+    \`;
+    // Pre-fill form with existing values
+    const nameEl = document.getElementById('profile-display-name');
+    const phaseEl = document.getElementById('profile-pilot-phase');
+    const notesEl = document.getElementById('profile-notes');
+    if (nameEl) nameEl.value = p.display_name || '';
+    if (phaseEl) phaseEl.value = p.pilot_phase || '';
+    if (notesEl) notesEl.value = p.notes || '';
+  } catch (e) {
+    if (displayEl) displayEl.innerHTML = '<span style="color:#f87171;">Profile load error: ' + e.message + '</span>';
+  }
+}
+
+async function saveProfile() {
+  const walletStatus = await fetch('/wallet/status').then(r => r.json()).catch(() => null);
+  if (!walletStatus || !walletStatus.connected || !walletStatus.session) {
+    alert('Connect your wallet first.');
+    return;
+  }
+  const addr = walletStatus.session.address;
+  const displayName = (document.getElementById('profile-display-name')?.value || '').trim();
+  const pilotPhase = document.getElementById('profile-pilot-phase')?.value || '';
+  const notes = (document.getElementById('profile-notes')?.value || '').trim();
+
+  const statusEl = document.getElementById('profile-tx-status');
+  if (statusEl) { statusEl.style.display = 'block'; statusEl.style.color = '#60a5fa'; statusEl.textContent = '⏳ Submitting profile to Effectstream...'; }
+
+  try {
+    const action = ['create_profile', addr, displayName, pilotPhase, notes];
+    await submitEffectstreamTx(action);
+    if (statusEl) { statusEl.style.color = '#22c55e'; statusEl.textContent = '✓ Profile saved to Effectstream'; }
+    console.log('[tx-debug] profile saved for', addr);
+    // Reload profile display after short delay
+    setTimeout(() => loadProfile(), 2000);
+  } catch (e) {
+    if (statusEl) { statusEl.style.color = '#f87171'; statusEl.textContent = '✗ Error: ' + e.message; }
+    console.error('[profile] save error:', e);
+  }
+}
+
 // ── Transaction helpers ───────────────────────────────────────────────────
 function setTxStatus(elId, type, msg) {
   const el = document.getElementById(elId);
@@ -8174,11 +8316,22 @@ async function submitEffectstreamTx(actionArray) {
 }
 
 async function getConnectedEvmAddress() {
-  if (!window.effectstream) throw new Error('Effectstream SDK not loaded.');
-  let wallet = window.effectstream.getWallet();
-  if (!wallet) wallet = await esLogin();
-  const addr = wallet.provider.getAddress();
-  return addr.address ?? addr;
+  if (!window.effectstream) {
+    throw new Error('Effectstream SDK not loaded.');
+  }
+
+  let wallet = window.effectstream.getWallet?.();
+
+  if (!wallet?.address) {
+    await esLogin();
+    wallet = window.effectstream.getWallet?.();
+  }
+
+  if (!wallet?.address) {
+    throw new Error('No EVM wallet connected.');
+  }
+
+  return wallet.address;
 }
 
 // ── Student Request actions ───────────────────────────────────────────────
@@ -8302,6 +8455,7 @@ async function withdrawCfiAvailability(availabilityId, ownerAddr) {
 checkEffectstreamStatus();
 loadStudentRequests();
 loadCfiAvailability();
+loadProfile();
 setInterval(() => { loadStudentRequests(); loadCfiAvailability(); checkEffectstreamStatus(); }, 10000);
 </script>
 </body>

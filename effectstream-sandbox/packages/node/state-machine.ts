@@ -12,6 +12,7 @@ import {
   getCfiAvailability,
   insertCfiAvailabilityHistory,
   deleteCfiAvailability,
+  upsertProfile,
 } from "@pilotlog-sandbox/database";
 import { grammar } from "./grammar.ts";
 
@@ -165,6 +166,28 @@ stm.addStateTransition("withdraw_cfi_availability", function* (data) {
 
   yield* World.resolve(deleteCfiAvailability, {
     availability_id: avail.availability_id,
+  });
+});
+
+stm.addStateTransition("create_profile", function* (data) {
+  const { parsedInput } = data;
+
+  yield* World.resolve(upsertProfile, {
+    wallet_address: parsedInput.walletAddress,
+    display_name: parsedInput.displayName,
+    pilot_phase: parsedInput.pilotPhase,
+    notes: parsedInput.notes,
+  });
+});
+
+stm.addStateTransition("update_profile", function* (data) {
+  const { parsedInput } = data;
+
+  yield* World.resolve(upsertProfile, {
+    wallet_address: parsedInput.walletAddress,
+    display_name: parsedInput.displayName,
+    pilot_phase: parsedInput.pilotPhase,
+    notes: parsedInput.notes,
   });
 });
 
