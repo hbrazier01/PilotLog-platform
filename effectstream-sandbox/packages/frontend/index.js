@@ -1,59 +1,73 @@
 import {
-  EffectstreamConfig,
-  sendTransaction,
-  walletLogin,
-  WalletMode,
-} from "@effectstream/wallets";
+  createWalletClient,
+  custom,
+  encodeFunctionData,
+  toHex,
+} from "viem";
 import { hardhat } from "viem/chains";
 
-// EFFECTSTREAM_L2_ADDRESS is the deterministic Hardhat address of the first deployed contract.
-// For other networks, replace this with the deployed EffectstreamL2 contract address.
-export const effectstreamConfig = new EffectstreamConfig(
-  "minimal",
-  "mainEvmRPC",
-  "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-  hardhat,
-  undefined,
-  undefined,
-  false,
-);
+// Deterministic Hardhat address of the first deployed contract.
+const EFFECTSTREAM_L2_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 
-let wallet = null;
+const EFFECTSTREAM_ABI = [
+  {
+    inputs: [{ name: "data", type: "bytes" }],
+    name: "effectstreamSubmitGameInput",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+];
+
+let walletClient = null;
+let account = null;
 
 async function login() {
-  const result = await walletLogin({
-    mode: WalletMode.EvmInjected,
-    chain: effectstreamConfig.effectstreamL2Chain,
+  if (!window.ethereum) throw new Error("No EVM wallet found (install MetaMask)");
+
+  const [addr] = await window.ethereum.request({ method: "eth_requestAccounts" });
+  account = addr;
+
+  walletClient = createWalletClient({
+    account,
+    chain: hardhat,
+    transport: custom(window.ethereum),
   });
-  if (!result.success) throw new Error("Cannot login");
-  wallet = result.result;
-  return wallet;
+
+  return { address: account };
+}
+
+async function sendAction(actionArray) {
+  if (!walletClient || !account) throw new Error("Login first via effectstream.login()");
+
+  // Encode action array the same way @effectstream/wallets does:
+  // utf8ToHex(JSON.stringify(actionArray)) -> bytes arg
+  const jsonStr = JSON.stringify(actionArray);
+  const hexPayload = toHex(jsonStr); // 0x-prefixed hex of UTF-8 bytes
+
+  const calldata = encodeFunctionData({
+    abi: EFFECTSTREAM_ABI,
+    functionName: "effectstreamSubmitGameInput",
+    args: [hexPayload],
+  });
+
+  const hash = await walletClient.sendTransaction({
+    account,
+    to: EFFECTSTREAM_L2_ADDRESS,
+    data: calldata,
+    value: 0n,
+  });
+
+  return { success: true, type: "self-sequenced", hash };
 }
 
 async function sendTransactionEffectstreamL2(input) {
-  if (!wallet) throw new Error("Login first");
-  return await sendTransaction(
-    wallet,
-    ["my_action_name", input ?? "no-text"],
-    effectstreamConfig,
-    "wait-effectstream-processed",
-  );
-}
-
-// Generic action sender — accepts any grammar action array e.g. ["create_student_request", addr, aircraft, notes]
-async function sendAction(actionArray) {
-  if (!wallet) throw new Error("Login first via effectstream.login()");
-  return await sendTransaction(
-    wallet,
-    actionArray,
-    effectstreamConfig,
-    "wait-effectstream-processed",
-  );
+  return await sendAction(["my_action_name", input ?? "no-text"]);
 }
 
 window.effectstream = {
   login,
   sendTransactionEffectstreamL2,
   sendAction,
-  getWallet: () => wallet,
+  getWallet: () => ({ address: account }),
 };

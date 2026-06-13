@@ -8,7 +8,6 @@
     "serve": "bun run server.ts"
   },
   "dependencies": {
-    "@effectstream/wallets": "0.100.20",
     "@fastify/static": "^7.0.4",
     "fastify": "^4.28.1",
     "viem": "^2.37.5"
