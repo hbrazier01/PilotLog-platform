@@ -1,5 +1,5 @@
 import { runPreparedQuery } from "@effectstream/db";
-import { getAllFlights, getAllStudentRequests, getAllCfiAvailability, getProfile, getAllProfiles } from "@pilotlog-sandbox/database";
+import { getAllFlights, getAllStudentRequests, getAllCfiAvailability, getProfile, getAllProfiles, getProfileByIdentityId, getIdentityByWallet, getWalletsByIdentity } from "@pilotlog-sandbox/database";
 import type { Pool } from "pg";
 import type { StartConfigApiRouter } from "@effectstream/runtime";
 import type { FastifyInstance } from "fastify";
@@ -51,6 +51,41 @@ export const apiRouter: StartConfigApiRouter = async function (
       "/profiles",
     );
     reply.send({ profiles: result });
+  });
+
+  server.get("/profile/identity/:identityId", async (request, reply) => {
+    const { identityId } = request.params as { identityId: string };
+    const rows = await runPreparedQuery(
+      getProfileByIdentityId.run({ identity_id: identityId }, dbConn),
+      "/profile/identity/:identityId",
+    );
+    if (!rows || rows.length === 0) {
+      reply.status(404).send({ error: "Profile not found" });
+      return;
+    }
+    reply.send({ profile: rows[0] });
+  });
+
+  server.get("/identity/:walletAddress", async (request, reply) => {
+    const { walletAddress } = request.params as { walletAddress: string };
+    const rows = await runPreparedQuery(
+      getIdentityByWallet.run({ wallet_address: walletAddress, chain: "midnight" }, dbConn),
+      "/identity/:walletAddress",
+    );
+    if (!rows || rows.length === 0) {
+      reply.status(404).send({ error: "Identity not found" });
+      return;
+    }
+    reply.send({ identity: rows[0] });
+  });
+
+  server.get("/identity/:identityId/wallets", async (request, reply) => {
+    const { identityId } = request.params as { identityId: string };
+    const result = await runPreparedQuery(
+      getWalletsByIdentity.run({ identity_id: identityId }, dbConn),
+      "/identity/:identityId/wallets",
+    );
+    reply.send({ wallets: result });
   });
 
 };

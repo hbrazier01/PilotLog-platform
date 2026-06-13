@@ -48,4 +48,19 @@ export const grammar = {
     ["pilotPhase", Type.String({ maxLength: 64 })],
     ["notes", Type.String({ maxLength: 1024 })],
   ],
+  create_identity: [
+    ["walletAddress", Type.String({ maxLength: 256 })],
+    ["chain", Type.String({ maxLength: 64 })],
+  ],
+  link_wallet: [
+    ["identityId", Type.String({ maxLength: 64 })],
+    ["chain", Type.String({ maxLength: 64 })],
+    ["walletAddress", Type.String({ maxLength: 256 })],
+    ["verificationStatus", Type.String({ maxLength: 32 })],
+  ],
+  unlink_wallet: [
+    ["identityId", Type.String({ maxLength: 64 })],
+    ["chain", Type.String({ maxLength: 64 })],
+    ["walletAddress", Type.String({ maxLength: 256 })],
+  ],
 } as const satisfies GrammarDefinition;

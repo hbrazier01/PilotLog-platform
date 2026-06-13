@@ -467,3 +467,165 @@ const getAllProfilesIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT
  * ```
  */
 export const getAllProfiles = new PreparedQuery<IGetAllProfilesParams,IGetAllProfilesResult>(getAllProfilesIR);
+
+
+// ─── Identity model (migration 003) ─────────────────────────────────────────
+
+/** 'GetProfileByIdentityId' parameters type */
+export interface IGetProfileByIdentityIdParams {
+  identity_id: string;
+}
+
+/** 'GetProfileByIdentityId' return type */
+export interface IGetProfileByIdentityIdResult {
+  created_at: Date;
+  display_name: string;
+  identity_id: string;
+  notes: string;
+  pilot_phase: string;
+  trust_score: number;
+  updated_at: Date;
+  wallet_address: string;
+}
+
+export interface IGetProfileByIdentityIdQuery {
+  params: IGetProfileByIdentityIdParams;
+  result: IGetProfileByIdentityIdResult;
+}
+
+const getProfileByIdentityIdIR: any = {"usedParamSet":{"identity_id":true},"params":[{"name":"identity_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":38,"b":50}]}],"statement":"SELECT * FROM pilot_profile\nWHERE identity_id = :identity_id!"};
+
+export const getProfileByIdentityId = new PreparedQuery<IGetProfileByIdentityIdParams,IGetProfileByIdentityIdResult>(getProfileByIdentityIdIR);
+
+
+/** 'CreateIdentity' parameters type */
+export interface ICreateIdentityParams {
+  primary_wallet: string;
+}
+
+/** 'CreateIdentity' return type */
+export interface ICreateIdentityResult {
+  created_at: Date;
+  identity_id: string;
+  primary_wallet: string;
+}
+
+export interface ICreateIdentityQuery {
+  params: ICreateIdentityParams;
+  result: ICreateIdentityResult;
+}
+
+const createIdentityIR: any = {"usedParamSet":{"primary_wallet":true},"params":[{"name":"primary_wallet","required":true,"transform":{"type":"scalar"},"locs":[{"a":45,"b":60}]}],"statement":"INSERT INTO pilot_identity (primary_wallet)\nVALUES (:primary_wallet!)\nRETURNING identity_id, primary_wallet, created_at"};
+
+export const createIdentity = new PreparedQuery<ICreateIdentityParams,ICreateIdentityResult>(createIdentityIR);
+
+
+/** 'GetIdentityByWallet' parameters type */
+export interface IGetIdentityByWalletParams {
+  chain: string;
+  wallet_address: string;
+}
+
+/** 'GetIdentityByWallet' return type */
+export interface IGetIdentityByWalletResult {
+  created_at: Date;
+  identity_id: string;
+  primary_wallet: string;
+}
+
+export interface IGetIdentityByWalletQuery {
+  params: IGetIdentityByWalletParams;
+  result: IGetIdentityByWalletResult;
+}
+
+const getIdentityByWalletIR: any = {"usedParamSet":{"wallet_address":true,"chain":true},"params":[{"name":"wallet_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":115,"b":130}]},{"name":"chain","required":true,"transform":{"type":"scalar"},"locs":[{"a":150,"b":156}]}],"statement":"SELECT pi.identity_id, pi.primary_wallet, pi.created_at\nFROM pilot_identity pi\nJOIN identity_wallet iw ON iw.identity_id = pi.identity_id\nWHERE iw.wallet_address = :wallet_address! AND iw.chain = :chain!"};
+
+export const getIdentityByWallet = new PreparedQuery<IGetIdentityByWalletParams,IGetIdentityByWalletResult>(getIdentityByWalletIR);
+
+
+/** 'LinkWallet' parameters type */
+export interface ILinkWalletParams {
+  chain: string;
+  identity_id: string;
+  verification_status: string;
+  wallet_address: string;
+}
+
+/** 'LinkWallet' return type */
+export type ILinkWalletResult = void;
+
+export interface ILinkWalletQuery {
+  params: ILinkWalletParams;
+  result: ILinkWalletResult;
+}
+
+const linkWalletIR: any = {"usedParamSet":{"identity_id":true,"chain":true,"wallet_address":true,"verification_status":true},"params":[{"name":"identity_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":82,"b":94}]},{"name":"chain","required":true,"transform":{"type":"scalar"},"locs":[{"a":97,"b":103}]},{"name":"wallet_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":106,"b":121}]},{"name":"verification_status","required":true,"transform":{"type":"scalar"},"locs":[{"a":124,"b":144}]}],"statement":"INSERT INTO identity_wallet (identity_id, chain, wallet_address, verification_status)\nVALUES (:identity_id!, :chain!, :wallet_address!, :verification_status!)\nON CONFLICT (chain, wallet_address) DO NOTHING"};
+
+export const linkWallet = new PreparedQuery<ILinkWalletParams,ILinkWalletResult>(linkWalletIR);
+
+
+/** 'UnlinkWallet' parameters type */
+export interface IUnlinkWalletParams {
+  chain: string;
+  identity_id: string;
+  wallet_address: string;
+}
+
+/** 'UnlinkWallet' return type */
+export type IUnlinkWalletResult = void;
+
+export interface IUnlinkWalletQuery {
+  params: IUnlinkWalletParams;
+  result: IUnlinkWalletResult;
+}
+
+const unlinkWalletIR: any = {"usedParamSet":{"identity_id":true,"chain":true,"wallet_address":true},"params":[{"name":"identity_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":41,"b":53}]},{"name":"chain","required":true,"transform":{"type":"scalar"},"locs":[{"a":63,"b":69}]},{"name":"wallet_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":87,"b":102}]}],"statement":"DELETE FROM identity_wallet\nWHERE identity_id = :identity_id! AND chain = :chain! AND wallet_address = :wallet_address!"};
+
+export const unlinkWallet = new PreparedQuery<IUnlinkWalletParams,IUnlinkWalletResult>(unlinkWalletIR);
+
+
+/** 'GetWalletsByIdentity' parameters type */
+export interface IGetWalletsByIdentityParams {
+  identity_id: string;
+}
+
+/** 'GetWalletsByIdentity' return type */
+export interface IGetWalletsByIdentityResult {
+  chain: string;
+  id: number;
+  identity_id: string;
+  linked_at: Date;
+  verification_status: string;
+  wallet_address: string;
+}
+
+export interface IGetWalletsByIdentityQuery {
+  params: IGetWalletsByIdentityParams;
+  result: IGetWalletsByIdentityResult;
+}
+
+const getWalletsByIdentityIR: any = {"usedParamSet":{"identity_id":true},"params":[{"name":"identity_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":46,"b":58}]}],"statement":"SELECT * FROM identity_wallet\nWHERE identity_id = :identity_id!\nORDER BY linked_at ASC"};
+
+export const getWalletsByIdentity = new PreparedQuery<IGetWalletsByIdentityParams,IGetWalletsByIdentityResult>(getWalletsByIdentityIR);
+
+
+/** 'UpsertProfileByIdentityId' parameters type */
+export interface IUpsertProfileByIdentityIdParams {
+  display_name: string;
+  identity_id: string;
+  notes: string;
+  pilot_phase: string;
+  wallet_address: string;
+}
+
+/** 'UpsertProfileByIdentityId' return type */
+export type IUpsertProfileByIdentityIdResult = void;
+
+export interface IUpsertProfileByIdentityIdQuery {
+  params: IUpsertProfileByIdentityIdParams;
+  result: IUpsertProfileByIdentityIdResult;
+}
+
+const upsertProfileByIdentityIdIR: any = {"usedParamSet":{"identity_id":true,"wallet_address":true,"display_name":true,"pilot_phase":true,"notes":true},"params":[{"name":"identity_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":73,"b":85}]},{"name":"wallet_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":88,"b":103}]},{"name":"display_name","required":true,"transform":{"type":"scalar"},"locs":[{"a":106,"b":119}]},{"name":"pilot_phase","required":true,"transform":{"type":"scalar"},"locs":[{"a":122,"b":134}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":137,"b":143}]}],"statement":"INSERT INTO pilot_profile (identity_id, wallet_address, display_name, pilot_phase, notes)\nVALUES (:identity_id!, :wallet_address!, :display_name!, :pilot_phase!, :notes!)\nON CONFLICT (identity_id) DO UPDATE SET\n  display_name = EXCLUDED.display_name,\n  pilot_phase  = EXCLUDED.pilot_phase,\n  notes        = EXCLUDED.notes,\n  updated_at   = NOW()"};
+
+export const upsertProfileByIdentityId = new PreparedQuery<IUpsertProfileByIdentityIdParams,IUpsertProfileByIdentityIdResult>(upsertProfileByIdentityIdIR);

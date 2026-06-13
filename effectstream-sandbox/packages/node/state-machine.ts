@@ -13,6 +13,11 @@ import {
   insertCfiAvailabilityHistory,
   deleteCfiAvailability,
   upsertProfile,
+  createIdentity,
+  getIdentityByWallet,
+  linkWallet,
+  unlinkWallet,
+  upsertProfileByIdentityId,
 } from "@pilotlog-sandbox/database";
 import { grammar } from "./grammar.ts";
 
@@ -172,7 +177,30 @@ stm.addStateTransition("withdraw_cfi_availability", function* (data) {
 stm.addStateTransition("create_profile", function* (data) {
   const { parsedInput } = data;
 
-  yield* World.resolve(upsertProfile, {
+  // Resolve or create identity for this wallet before upserting profile.
+  const existing = yield* World.resolve(getIdentityByWallet, {
+    wallet_address: parsedInput.walletAddress,
+    chain: "midnight",
+  });
+
+  let identityId: string;
+  if (existing && existing.length > 0) {
+    identityId = existing[0].identity_id;
+  } else {
+    const created = yield* World.resolve(createIdentity, {
+      primary_wallet: parsedInput.walletAddress,
+    });
+    identityId = created[0].identity_id;
+    yield* World.resolve(linkWallet, {
+      identity_id: identityId,
+      chain: "midnight",
+      wallet_address: parsedInput.walletAddress,
+      verification_status: "verified",
+    });
+  }
+
+  yield* World.resolve(upsertProfileByIdentityId, {
+    identity_id: identityId,
     wallet_address: parsedInput.walletAddress,
     display_name: parsedInput.displayName,
     pilot_phase: parsedInput.pilotPhase,
@@ -183,11 +211,80 @@ stm.addStateTransition("create_profile", function* (data) {
 stm.addStateTransition("update_profile", function* (data) {
   const { parsedInput } = data;
 
-  yield* World.resolve(upsertProfile, {
+  const existing = yield* World.resolve(getIdentityByWallet, {
+    wallet_address: parsedInput.walletAddress,
+    chain: "midnight",
+  });
+
+  let identityId: string;
+  if (existing && existing.length > 0) {
+    identityId = existing[0].identity_id;
+  } else {
+    const created = yield* World.resolve(createIdentity, {
+      primary_wallet: parsedInput.walletAddress,
+    });
+    identityId = created[0].identity_id;
+    yield* World.resolve(linkWallet, {
+      identity_id: identityId,
+      chain: "midnight",
+      wallet_address: parsedInput.walletAddress,
+      verification_status: "verified",
+    });
+  }
+
+  yield* World.resolve(upsertProfileByIdentityId, {
+    identity_id: identityId,
     wallet_address: parsedInput.walletAddress,
     display_name: parsedInput.displayName,
     pilot_phase: parsedInput.pilotPhase,
     notes: parsedInput.notes,
+  });
+});
+
+stm.addStateTransition("create_identity", function* (data) {
+  const { parsedInput } = data;
+  const chain = parsedInput.chain || "midnight";
+
+  const existing = yield* World.resolve(getIdentityByWallet, {
+    wallet_address: parsedInput.walletAddress,
+    chain,
+  });
+
+  if (existing && existing.length > 0) {
+    // Identity already exists for this wallet — idempotent.
+    return;
+  }
+
+  const created = yield* World.resolve(createIdentity, {
+    primary_wallet: parsedInput.walletAddress,
+  });
+
+  yield* World.resolve(linkWallet, {
+    identity_id: created[0].identity_id,
+    chain,
+    wallet_address: parsedInput.walletAddress,
+    verification_status: "verified",
+  });
+});
+
+stm.addStateTransition("link_wallet", function* (data) {
+  const { parsedInput } = data;
+
+  yield* World.resolve(linkWallet, {
+    identity_id: parsedInput.identityId,
+    chain: parsedInput.chain,
+    wallet_address: parsedInput.walletAddress,
+    verification_status: parsedInput.verificationStatus,
+  });
+});
+
+stm.addStateTransition("unlink_wallet", function* (data) {
+  const { parsedInput } = data;
+
+  yield* World.resolve(unlinkWallet, {
+    identity_id: parsedInput.identityId,
+    chain: parsedInput.chain,
+    wallet_address: parsedInput.walletAddress,
   });
 });
 
