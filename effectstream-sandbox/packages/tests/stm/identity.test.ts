@@ -1,5 +1,5 @@
 /**
- * Identity security tests (Phase B)
+ * Identity security tests (Phase C)
  *
  * Key invariant under test:
  *   When a user submits create_profile the STM reads data.signerAddress
@@ -7,11 +7,10 @@
  *   in the JSON payload.  A caller cannot spoof another wallet's identity by
  *   including a different address in the payload.
  *
- * The new grammar for create_profile has NO walletAddress field at all.
- * The negative test below submits the action from wallet0 and then confirms
- * that pilot_identity was created under wallet0's address — proving the signer
- * path, not a user-supplied field.  We additionally verify that no row was
- * created for wallet1 (the "spoofed" address used in the legacy payload format).
+ * The grammar for create_profile has NO walletAddress field at all.
+ * We submit from wallet0, then confirm profile_log.signer = wallet0.address —
+ * proving the Effectstream signer path is used, not a user-supplied field.
+ * We additionally verify no profile_log row exists for wallet1 (never signed).
  */
 import { assertSQL, assert } from "../helpers.ts";
 import { createWalletClient, createPublicClient, http, toHex } from "viem";
@@ -45,72 +44,36 @@ export async function identityTest(db: Client) {
   const publicClient = createPublicClient({ chain: hardhat, transport: http() });
 
   // Submit create_profile from wallet0.
-  // The NEW grammar has no walletAddress field — the payload only contains
-  // displayName, pilotPhase, notes.  The signer (wallet0) is attached by the
-  // chain and read by the STM as data.signerAddress.
+  // Payload contains only displayName/pilotPhase/notes — no walletAddress field.
+  // The STM reads data.signerAddress (chain-verified) as the identity.
   const hash = await walletClient.writeContract({
     address: contractAddr,
     abi: effectstreamL2Abi,
     functionName: "effectstreamSubmitGameInput",
     args: [toHex(JSON.stringify([
       "create_profile",
-      "Test Pilot",      // displayName
-      "ppl_student",     // pilotPhase
-      "identity test",   // notes
+      "Identity Test Pilot", // displayName
+      "ppl_student",         // pilotPhase
+      "identity test",       // notes
     ]))],
   });
   await publicClient.waitForTransactionReceipt({ hash });
 
-  // POSITIVE: a pilot_identity row must exist for wallet0's address.
+  // POSITIVE: profile_log row exists with signer = wallet0.address.
   await assertSQL(
-    "identity: pilot_identity created for the actual signer (wallet0)",
+    "identity: profile_log.signer = wallet0 (chain-verified, not user-supplied)",
     db,
-    `SELECT * FROM pilot_identity WHERE primary_wallet = '${wallet0.address.toLowerCase()}'`,
+    `SELECT * FROM profile_log WHERE signer = '${wallet0.address.toLowerCase()}' AND display_name = 'Identity Test Pilot'`,
     (res) => res.rows.length >= 1,
-    (res) => res.rows[0].primary_wallet === wallet0.address.toLowerCase(),
+    (res) => res.rows[0].signer === wallet0.address.toLowerCase(),
   );
 
-  // POSITIVE: identity_wallet row for wallet0 must exist and be verified.
-  await assertSQL(
-    "identity: identity_wallet row for wallet0 is verified",
-    db,
-    `SELECT iw.* FROM identity_wallet iw
-       JOIN pilot_identity pi ON pi.identity_id = iw.identity_id
-       WHERE pi.primary_wallet = '${wallet0.address.toLowerCase()}'
-         AND iw.chain = 'midnight'`,
-    (res) => res.rows.length >= 1,
-    (res) => res.rows[0].verification_status === "verified",
-  );
-
-  // POSITIVE: pilot_profile row keyed to wallet0's identity must exist.
-  await assertSQL(
-    "identity: pilot_profile keyed to wallet0 identity",
-    db,
-    `SELECT pp.* FROM pilot_profile pp
-       JOIN pilot_identity pi ON pi.identity_id = pp.identity_id
-       WHERE pi.primary_wallet = '${wallet0.address.toLowerCase()}'`,
-    (res) => res.rows.length >= 1,
-    (res) => res.rows[0].display_name === "Test Pilot",
-  );
-
-  // NEGATIVE (spoof prevention): no pilot_identity row for wallet1.
-  // wallet1 never signed a transaction, so it must have no identity.
+  // NEGATIVE: no profile_log row for wallet1 (never signed a transaction).
   await assert(
-    "identity: wallet1 (never signed) has NO pilot_identity row — spoof impossible",
+    "identity: wallet1 (never signed) has NO profile_log row — spoof impossible",
     async () => {
       const res = await db.query(
-        `SELECT * FROM pilot_identity WHERE primary_wallet = '${wallet1.address.toLowerCase()}'`,
-      );
-      return res.rows.length === 0;
-    },
-  );
-
-  // NEGATIVE (spoof prevention): no identity_wallet row for wallet1.
-  await assert(
-    "identity: wallet1 has NO identity_wallet row — spoof impossible",
-    async () => {
-      const res = await db.query(
-        `SELECT * FROM identity_wallet WHERE wallet_address = '${wallet1.address.toLowerCase()}'`,
+        `SELECT * FROM profile_log WHERE signer = '${wallet1.address.toLowerCase()}'`,
       );
       return res.rows.length === 0;
     },

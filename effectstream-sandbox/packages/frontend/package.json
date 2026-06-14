@@ -8,6 +8,7 @@
     "serve": "bun run server.ts"
   },
   "dependencies": {
+    "@effectstream/wallets": "0.100.22",
     "@fastify/static": "^7.0.4",
     "@pilotlog-sandbox/contracts-evm": "workspace:*",
     "fastify": "^4.28.1",

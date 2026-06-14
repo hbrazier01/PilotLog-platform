@@ -8,10 +8,10 @@ export const apiRouter: StartConfigApiRouter = async function (
   server: FastifyInstance,
   dbConn: Pool,
 ): Promise<void> {
-  server.get("/profiles", async (_request, reply) => {
+  server.get("/api/profiles", async (_request, reply) => {
     const result = await runPreparedQuery(
       getAllProfiles.run(undefined, dbConn),
-      "/profiles",
+      "/api/profiles",
     );
     reply.send({ profiles: result });
   });

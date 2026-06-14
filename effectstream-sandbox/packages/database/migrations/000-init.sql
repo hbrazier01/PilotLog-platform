@@ -3,6 +3,7 @@ CREATE TABLE profile_log (
   signer TEXT NOT NULL,
   display_name TEXT NOT NULL,
   pilot_phase TEXT NOT NULL,
+  notes TEXT NOT NULL DEFAULT '',
   block_height INTEGER NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

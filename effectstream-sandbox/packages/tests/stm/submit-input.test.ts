@@ -5,7 +5,7 @@ import { hardhat } from "viem/chains";
 import { contractAddressesEvmMain } from "@pilotlog-sandbox/contracts-evm";
 import type { Client } from "pg";
 
-const wallet0 = privateKeyToAccount(
+export const wallet0 = privateKeyToAccount(
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
 );
 
@@ -17,12 +17,11 @@ const effectstreamL2Abi = [{
   type: "function",
 }] as const;
 
-export const TEST_FLIGHT = {
-  walletAddress: wallet0.address.toLowerCase(),
-  aircraftIdent: "N999ZP",
-  airportFrom: "KAPA",
-  airportTo: "KADS",
-  totalTime: 1.2,
+export const TEST_PROFILE = {
+  signerAddress: wallet0.address.toLowerCase(),
+  displayName: "Test Pilot",
+  pilotPhase: "ppl_student",
+  notes: "minimal effectstream proof",
 };
 
 export async function submitInputTest(db: Client) {
@@ -35,18 +34,23 @@ export async function submitInputTest(db: Client) {
     address: contractAddr,
     abi: effectstreamL2Abi,
     functionName: "effectstreamSubmitGameInput",
-    args: [toHex(JSON.stringify(["log_flight", TEST_FLIGHT.walletAddress, TEST_FLIGHT.aircraftIdent, TEST_FLIGHT.airportFrom, TEST_FLIGHT.airportTo, TEST_FLIGHT.totalTime]))],
+    args: [toHex(JSON.stringify([
+      "create_profile",
+      TEST_PROFILE.displayName,
+      TEST_PROFILE.pilotPhase,
+      TEST_PROFILE.notes,
+    ]))],
   });
   await publicClient.waitForTransactionReceipt({ hash });
 
   await assertSQL(
-    "submit-input: flights row created for aircraft N999ZP",
+    "submit-input: profile_log row created for signer",
     db,
-    `SELECT * FROM flights WHERE aircraft_ident = '${TEST_FLIGHT.aircraftIdent}' AND airport_from = '${TEST_FLIGHT.airportFrom}';`,
+    `SELECT * FROM profile_log WHERE signer = '${TEST_PROFILE.signerAddress}';`,
     (res) => res.rows.length >= 1,
     (res) =>
-      res.rows[0].aircraft_ident === TEST_FLIGHT.aircraftIdent &&
-      res.rows[0].airport_from === TEST_FLIGHT.airportFrom &&
-      res.rows[0].airport_to === TEST_FLIGHT.airportTo,
+      res.rows[0].display_name === TEST_PROFILE.displayName &&
+      res.rows[0].pilot_phase === TEST_PROFILE.pilotPhase &&
+      res.rows[0].notes === TEST_PROFILE.notes,
   );
 }
