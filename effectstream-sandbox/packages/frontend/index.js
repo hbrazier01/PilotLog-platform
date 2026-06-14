@@ -1,64 +1,84 @@
-import {
-  createWalletClient,
-  custom,
-  encodeFunctionData,
-  toHex,
-} from "viem";
-import { hardhat } from "viem/chains";
+/**
+ * Effectstream browser client — NO MetaMask required.
+ *
+ * Auth path (DEV-ONLY RELAY):
+ *   1. Detect 1AM wallet via window.midnight['1am']
+ *   2. Connect → get unshielded mn_addr
+ *   3. For each action: POST /relay/submit { mnAddr, action }
+ *   4. Server derives deterministic EVM key from mn_addr, signs + submits tx
+ *   5. Returns { hash, signerAddress }
+ *
+ * The relay is TEMPORARY. Replace when 1AM adds direct EVM signing support.
+ * No window.ethereum dependency anywhere in this file.
+ */
 
-// Deterministic Hardhat address of the first deployed contract.
-const EFFECTSTREAM_L2_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+let mnAddr = null;
 
-const EFFECTSTREAM_ABI = [
-  {
-    inputs: [{ name: "data", type: "bytes" }],
-    name: "effectstreamSubmitGameInput",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-];
-
-let walletClient = null;
-let account = null;
+async function detectOneAmWallet(timeoutMs = 3000) {
+  return new Promise((resolve) => {
+    const wallet = window.midnight?.["1am"];
+    if (wallet) {
+      resolve(wallet);
+      return;
+    }
+    let attempts = 0;
+    const max = timeoutMs / 100;
+    const interval = setInterval(() => {
+      const w = window.midnight?.["1am"];
+      if (w) {
+        clearInterval(interval);
+        resolve(w);
+      } else if (++attempts >= max) {
+        clearInterval(interval);
+        resolve(null);
+      }
+    }, 100);
+  });
+}
 
 async function login() {
-  if (!window.ethereum) throw new Error("No EVM wallet found (install MetaMask)");
+  const wallet = await detectOneAmWallet();
 
-  const [addr] = await window.ethereum.request({ method: "eth_requestAccounts" });
-  account = addr;
+  if (wallet) {
+    // Use 1AM wallet — the canonical PilotLog identity
+    const api = await wallet.connect("preview");
+    const { unshieldedAddress } = await api.getUnshieldedAddress();
+    mnAddr = unshieldedAddress;
+    console.log("[effectstream] 1AM wallet connected:", mnAddr);
+  } else {
+    // Dev fallback when 1AM wallet is not installed
+    mnAddr = "dev-pilot-fallback";
+    console.warn(
+      "[effectstream] 1AM wallet not found — using dev fallback address.",
+      "Install 1AM from https://1am.xyz/install-beta for full identity.",
+    );
+  }
 
-  walletClient = createWalletClient({
-    account,
-    chain: hardhat,
-    transport: custom(window.ethereum),
-  });
-
-  return { address: account };
+  return { address: mnAddr };
 }
 
 async function sendAction(actionArray) {
-  if (!walletClient || !account) throw new Error("Login first via effectstream.login()");
+  if (!mnAddr) throw new Error("Call effectstream.login() first");
 
-  // Encode action array the same way @effectstream/wallets does:
-  // utf8ToHex(JSON.stringify(actionArray)) -> bytes arg
-  const jsonStr = JSON.stringify(actionArray);
-  const hexPayload = toHex(jsonStr); // 0x-prefixed hex of UTF-8 bytes
-
-  const calldata = encodeFunctionData({
-    abi: EFFECTSTREAM_ABI,
-    functionName: "effectstreamSubmitGameInput",
-    args: [hexPayload],
+  const response = await fetch("/relay/submit", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mnAddr, action: actionArray }),
   });
 
-  const hash = await walletClient.sendTransaction({
-    account,
-    to: EFFECTSTREAM_L2_ADDRESS,
-    data: calldata,
-    value: 0n,
-  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || `relay submit failed (${response.status})`);
+  }
 
-  return { success: true, type: "self-sequenced", hash };
+  const result = await response.json();
+  console.log("[tx-debug] effectstream relay submit:", result);
+  return {
+    success: true,
+    type: "server-relay",
+    hash: result.hash,
+    signerAddress: result.signerAddress,
+  };
 }
 
 async function sendTransactionEffectstreamL2(input) {
@@ -69,5 +89,5 @@ window.effectstream = {
   login,
   sendTransactionEffectstreamL2,
   sendAction,
-  getWallet: () => ({ address: account }),
+  getWallet: () => ({ address: mnAddr }),
 };

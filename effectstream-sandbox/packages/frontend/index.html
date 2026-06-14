@@ -40,8 +40,7 @@
 
     async function walletConnect() {
         const wallet = await effectstream.login();
-        const { address } = wallet.provider.getAddress();
-        document.getElementById("address").innerText = address;
+        document.getElementById("address").innerText = wallet.address;
     }
 
     async function sendTx() {

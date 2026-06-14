@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@fastify/static": "^7.0.4",
+    "@pilotlog-sandbox/contracts-evm": "workspace:*",
     "fastify": "^4.28.1",
     "viem": "^2.37.5"
   },
