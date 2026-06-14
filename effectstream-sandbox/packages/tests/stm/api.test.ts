@@ -9,7 +9,18 @@ export async function apiTest() {
     const data = await res.json();
     return (
       Array.isArray(data.profiles) &&
-      data.profiles.some((r: any) => r.signer === TEST_PROFILE.signerAddress)
+      data.profiles.some((r: any) => r.signer_address === TEST_PROFILE.signerAddress)
+    );
+  });
+
+  await assert("GET /api/profile/:signer returns profile for signer_address", async () => {
+    const res = await fetch(`http://localhost:${API_PORT}/api/profile/${TEST_PROFILE.signerAddress}`);
+    if (!res.ok) return false;
+    const data = await res.json();
+    return (
+      data.profile &&
+      data.profile.signer_address === TEST_PROFILE.signerAddress &&
+      data.profile.display_name === TEST_PROFILE.displayName
     );
   });
 }

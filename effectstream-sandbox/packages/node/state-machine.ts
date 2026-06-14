@@ -10,7 +10,7 @@ const stm = new Stm<typeof grammar, {}>(grammar);
 stm.addStateTransition("create_profile", function* (data) {
   const { parsedInput, signerAddress, blockHeight } = data;
   yield* World.resolve(insertProfile, {
-    signer: signerAddress!.toLowerCase(),
+    signer_address: signerAddress!.toLowerCase(),
     display_name: parsedInput.displayName,
     pilot_phase: parsedInput.pilotPhase,
     notes: parsedInput.notes ?? "",

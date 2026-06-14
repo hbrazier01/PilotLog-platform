@@ -44,9 +44,9 @@ export async function submitInputTest(db: Client) {
   await publicClient.waitForTransactionReceipt({ hash });
 
   await assertSQL(
-    "submit-input: profile_log row created for signer",
+    "submit-input: pilot_profile row created for signer_address",
     db,
-    `SELECT * FROM profile_log WHERE signer = '${TEST_PROFILE.signerAddress}';`,
+    `SELECT * FROM pilot_profile WHERE signer_address = '${TEST_PROFILE.signerAddress}';`,
     (res) => res.rows.length >= 1,
     (res) =>
       res.rows[0].display_name === TEST_PROFILE.displayName &&

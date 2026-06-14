@@ -4,28 +4,30 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Midnight Wallet Effectstream Validation</title>
+    <title>PilotLog — Profile Foundation</title>
     <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
     <div class="container">
-        <h2>Midnight Wallet (1AM)</h2>
+        <h1>PilotLog</h1>
+
+        <h2>Wallet</h2>
         <div id="address">Not connected</div>
         <div id="signer-info" style="font-size:0.85em; color:#666;"></div>
         <button id="login" onclick="walletConnect()">Connect 1AM Wallet</button>
 
         <h2>Create Profile</h2>
-        <input id="display-name" type="text" placeholder="Display name" />
-        <input id="pilot-phase" type="text" placeholder="Pilot phase (e.g. student)" />
+        <input id="display-name" type="text" placeholder="Display Name" />
+        <input id="pilot-phase" type="text" placeholder="Pilot Phase (e.g. student, ppl, cfi)" />
         <input id="notes" type="text" placeholder="Notes (optional)" />
-        <button onclick="createProfile()">Submit create_profile</button>
+        <button onclick="createProfile()">Create Profile</button>
         <div id="tx-result"></div>
 
         <hr />
-        <h2>Profile Log (GET /api/profiles)</h2>
+        <h2>Profiles (GET /api/profiles)</h2>
         <button onclick="fetchProfiles()">Refresh</button>
-        <pre id="profiles-data"></pre>
+        <div id="profiles-display"></div>
     </div>
 </body>
 
@@ -35,11 +37,18 @@
     async function fetchProfiles() {
         const response = await fetch("http://localhost:9999/api/profiles");
         const data = await response.json();
-        document.getElementById("profiles-data").innerText = JSON.stringify(
-            data.profiles,
-            null,
-            2,
-        );
+        const container = document.getElementById("profiles-display");
+        if (!data.profiles || data.profiles.length === 0) {
+            container.innerHTML = "<p>No profiles yet.</p>";
+            return;
+        }
+        container.innerHTML = data.profiles.map(p => `
+            <div style="border:1px solid #ccc; padding:8px; margin:8px 0; border-radius:4px;">
+                <strong>${p.display_name}</strong> — ${p.pilot_phase}<br/>
+                <small>Signer: ${p.signer_address}</small><br/>
+                ${p.notes ? `<em>${p.notes}</em>` : ""}
+            </div>
+        `).join("");
     }
 
     async function walletConnect() {
@@ -57,7 +66,7 @@
         try {
             const result = await effectstream.sendCreateProfile(displayName, pilotPhase, notes);
             console.log("[tx-debug]", result);
-            document.getElementById("tx-result").innerText = JSON.stringify(result, null, 2);
+            document.getElementById("tx-result").innerText = "Profile created! " + JSON.stringify(result, null, 2);
             await fetchProfiles();
         } catch (err) {
             document.getElementById("tx-result").innerText = "Error: " + err.message;

@@ -8,9 +8,9 @@
  *   including a different address in the payload.
  *
  * The grammar for create_profile has NO walletAddress field at all.
- * We submit from wallet0, then confirm profile_log.signer = wallet0.address —
+ * We submit from wallet0, then confirm pilot_profile.signer_address = wallet0.address —
  * proving the Effectstream signer path is used, not a user-supplied field.
- * We additionally verify no profile_log row exists for wallet1 (never signed).
+ * We additionally verify no pilot_profile row exists for wallet1 (never signed).
  */
 import { assertSQL, assert } from "../helpers.ts";
 import { createWalletClient, createPublicClient, http, toHex } from "viem";
@@ -59,21 +59,21 @@ export async function identityTest(db: Client) {
   });
   await publicClient.waitForTransactionReceipt({ hash });
 
-  // POSITIVE: profile_log row exists with signer = wallet0.address.
+  // POSITIVE: pilot_profile row exists with signer_address = wallet0.address.
   await assertSQL(
-    "identity: profile_log.signer = wallet0 (chain-verified, not user-supplied)",
+    "identity: pilot_profile.signer_address = wallet0 (chain-verified, not user-supplied)",
     db,
-    `SELECT * FROM profile_log WHERE signer = '${wallet0.address.toLowerCase()}' AND display_name = 'Identity Test Pilot'`,
+    `SELECT * FROM pilot_profile WHERE signer_address = '${wallet0.address.toLowerCase()}' AND display_name = 'Identity Test Pilot'`,
     (res) => res.rows.length >= 1,
-    (res) => res.rows[0].signer === wallet0.address.toLowerCase(),
+    (res) => res.rows[0].signer_address === wallet0.address.toLowerCase(),
   );
 
-  // NEGATIVE: no profile_log row for wallet1 (never signed a transaction).
+  // NEGATIVE: no pilot_profile row for wallet1 (never signed a transaction).
   await assert(
-    "identity: wallet1 (never signed) has NO profile_log row — spoof impossible",
+    "identity: wallet1 (never signed) has NO pilot_profile row — spoof impossible",
     async () => {
       const res = await db.query(
-        `SELECT * FROM profile_log WHERE signer = '${wallet1.address.toLowerCase()}'`,
+        `SELECT * FROM pilot_profile WHERE signer_address = '${wallet1.address.toLowerCase()}'`,
       );
       return res.rows.length === 0;
     },
