@@ -23,6 +23,17 @@ export default {
     },
 
     {
+      name: "batcher",
+      description: "Midnight wallet batcher (AIR-344)",
+      cwd: path.join(root, "packages/batcher"),
+      args: ["run", "main.ts"],
+      waitToExit: false,
+      type: "system-dependency",
+      stopProcessAtPort: [3333],
+      dependsOn: [EvmNames.GENERATE_MOD],
+    },
+
+    {
       name: "frontend-build",
       description: "Build frontend",
       cwd: path.join(root, "packages/frontend"),

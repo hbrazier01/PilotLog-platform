@@ -6,7 +6,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-MONOREPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# effectstream-reference is a sibling of effectstream-sandbox inside the PilotLog project
+MONOREPO_ROOT="$(cd "$SCRIPT_DIR/../effectstream-reference" && pwd)"
 P="$MONOREPO_ROOT/packages"
 
 echo "Linking @effectstream packages from monorepo..."
@@ -35,11 +36,12 @@ link_pkg() {
 }
 
 echo "Linking workspace packages..."
-link_pkg "minimal" "contracts-evm"   "$SCRIPT_DIR/packages/contracts-evm"
-link_pkg "minimal" "database"        "$SCRIPT_DIR/packages/database"
-link_pkg "minimal" "node"            "$SCRIPT_DIR/packages/node"
-link_pkg "minimal" "frontend"        "$SCRIPT_DIR/packages/frontend"
-link_pkg "minimal" "tests"           "$SCRIPT_DIR/packages/tests"
+link_pkg "pilotlog-sandbox" "contracts-evm"   "$SCRIPT_DIR/packages/contracts-evm"
+link_pkg "pilotlog-sandbox" "database"        "$SCRIPT_DIR/packages/database"
+link_pkg "pilotlog-sandbox" "node"            "$SCRIPT_DIR/packages/node"
+link_pkg "pilotlog-sandbox" "frontend"        "$SCRIPT_DIR/packages/frontend"
+link_pkg "pilotlog-sandbox" "batcher"         "$SCRIPT_DIR/packages/batcher"
+link_pkg "pilotlog-sandbox" "tests"           "$SCRIPT_DIR/packages/tests"
 
 echo ""
 echo "Linking @effectstream packages from monorepo..."
@@ -55,6 +57,7 @@ link_pkg "effectstream" "runtime"           "$P/node-sdk/runtime"
 link_pkg "effectstream" "sm"                "$P/node-sdk/sm"
 link_pkg "effectstream" "utils"             "$P/effectstream-sdk/utils"
 link_pkg "effectstream" "wallets"           "$P/effectstream-sdk/wallets"
+link_pkg "effectstream" "batcher-sdk"       "$P/batcher"
 
 echo ""
 echo "Done. You can now run: bun run dev"

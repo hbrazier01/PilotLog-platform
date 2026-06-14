@@ -1,0 +1,15 @@
+{
+  "name": "@pilotlog-sandbox/batcher",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": "./main.ts",
+  "dependencies": {
+    "@effectstream/batcher-sdk": "0.100.22",
+    "@effectstream/config": "0.100.20",
+    "@effectstream/utils": "0.100.20",
+    "@pilotlog-sandbox/contracts-evm": "workspace:*",
+    "effection": "3.5.0",
+    "viem": "^2.37.5"
+  }
+}

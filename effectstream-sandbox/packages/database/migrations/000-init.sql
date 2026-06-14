@@ -1,9 +1,8 @@
-CREATE TABLE flights (
-  flight_id SERIAL PRIMARY KEY,
-  wallet_address TEXT NOT NULL,
-  aircraft_ident TEXT NOT NULL,
-  airport_from TEXT NOT NULL,
-  airport_to TEXT NOT NULL,
-  total_time NUMERIC(6, 1) NOT NULL,
+CREATE TABLE profile_log (
+  id SERIAL PRIMARY KEY,
+  signer TEXT NOT NULL,
+  display_name TEXT NOT NULL,
+  pilot_phase TEXT NOT NULL,
+  block_height INTEGER NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

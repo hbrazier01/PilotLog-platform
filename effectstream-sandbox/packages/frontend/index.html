@@ -4,35 +4,39 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Effectstream Minimal</title>
+    <title>Midnight Wallet Effectstream Validation</title>
     <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
     <div class="container">
-        <h2>Connect Wallet</h2>
+        <h2>Midnight Wallet (1AM)</h2>
         <div id="address">Not connected</div>
-        <button id="login" onclick="walletConnect()">Connect Wallet</button>
+        <div id="signer-info" style="font-size:0.85em; color:#666;"></div>
+        <button id="login" onclick="walletConnect()">Connect 1AM Wallet</button>
 
-        <h2>Send transaction to Effectstream L2</h2>
-        <input id="transaction-input" type="text" value="" placeholder="Enter your message" />
-        <button onclick="sendTx()">Send TX</button>
+        <h2>Create Profile</h2>
+        <input id="display-name" type="text" placeholder="Display name" />
+        <input id="pilot-phase" type="text" placeholder="Pilot phase (e.g. student)" />
+        <input id="notes" type="text" placeholder="Notes (optional)" />
+        <button onclick="createProfile()">Submit create_profile</button>
+        <div id="tx-result"></div>
 
         <hr />
-        <h2>Inputs Log</h2>
-        <button onclick="fetchInputs()">Refresh</button>
-        <pre id="inputs-data"></pre>
+        <h2>Profile Log (GET /api/profiles)</h2>
+        <button onclick="fetchProfiles()">Refresh</button>
+        <pre id="profiles-data"></pre>
     </div>
 </body>
 
 <script type="module" src="./min.js"></script>
 
 <script>
-    async function fetchInputs() {
-        const response = await fetch("http://localhost:9999/api/inputs");
+    async function fetchProfiles() {
+        const response = await fetch("http://localhost:9999/api/profiles");
         const data = await response.json();
-        document.getElementById("inputs-data").innerText = JSON.stringify(
-            data.inputs,
+        document.getElementById("profiles-data").innerText = JSON.stringify(
+            data.profiles,
             null,
             2,
         );
@@ -40,14 +44,25 @@
 
     async function walletConnect() {
         const wallet = await effectstream.login();
-        document.getElementById("address").innerText = wallet.address;
+        document.getElementById("address").innerText = "Midnight addr: " + wallet.address;
+        document.getElementById("signer-info").innerText =
+            wallet.signerAddress ? ("batcher EVM key: " + wallet.signerAddress) : "";
     }
 
-    async function sendTx() {
-        const input = document.getElementById("transaction-input").value;
-        const result = await effectstream.sendTransactionEffectstreamL2(input);
-        console.log(result);
-        await fetchInputs();
+    async function createProfile() {
+        const displayName = document.getElementById("display-name").value || "Anonymous";
+        const pilotPhase = document.getElementById("pilot-phase").value || "student";
+        const notes = document.getElementById("notes").value || "";
+        document.getElementById("tx-result").innerText = "Submitting...";
+        try {
+            const result = await effectstream.sendCreateProfile(displayName, pilotPhase, notes);
+            console.log("[tx-debug]", result);
+            document.getElementById("tx-result").innerText = JSON.stringify(result, null, 2);
+            await fetchProfiles();
+        } catch (err) {
+            document.getElementById("tx-result").innerText = "Error: " + err.message;
+            console.error(err);
+        }
     }
 </script>
 

@@ -1,93 +1,90 @@
 /**
- * Effectstream browser client — NO MetaMask required.
+ * Midnight wallet Effectstream validation (AIR-344).
  *
- * Auth path (DEV-ONLY RELAY):
+ * Auth path:
  *   1. Detect 1AM wallet via window.midnight['1am']
- *   2. Connect → get unshielded mn_addr
- *   3. For each action: POST /relay/submit { mnAddr, action }
- *   4. Server derives deterministic EVM key from mn_addr, signs + submits tx
- *   5. Returns { hash, signerAddress }
+ *   2. Connect using WalletMode.Midnight (native Midnight signing)
+ *   3. sendTransaction → batcher path (preferBatchedMode: true)
+ *   4. Batcher verifies Midnight signature, submits to EVM contract
  *
- * The relay is TEMPORARY. Replace when 1AM adds direct EVM signing support.
- * No window.ethereum dependency anywhere in this file.
+ * Signer identity recorded in the STM is the Midnight unshielded address.
+ * No EVM key derivation. No MetaMask required.
  */
 
+import {
+  EffectstreamConfig,
+  sendTransaction,
+  walletLogin,
+  WalletMode,
+} from "@effectstream/wallets";
+import { hardhat } from "viem/chains";
+
+const BATCHER_URL = "http://localhost:3333";
+
+let wallet = null;
 let mnAddr = null;
 
-async function detectOneAmWallet(timeoutMs = 3000) {
-  return new Promise((resolve) => {
-    const wallet = window.midnight?.["1am"];
-    if (wallet) {
-      resolve(wallet);
-      return;
-    }
-    let attempts = 0;
-    const max = timeoutMs / 100;
-    const interval = setInterval(() => {
-      const w = window.midnight?.["1am"];
-      if (w) {
-        clearInterval(interval);
-        resolve(w);
-      } else if (++attempts >= max) {
-        clearInterval(interval);
-        resolve(null);
-      }
-    }, 100);
-  });
+// ── Config ────────────────────────────────────────────────────────────────────
+
+let effectstreamConfig = null;
+
+async function loadConfig() {
+  if (effectstreamConfig) return effectstreamConfig;
+  const res = await fetch("/api/contract-address");
+  if (!res.ok) throw new Error(`/api/contract-address failed (${res.status})`);
+  const { contractAddress } = await res.json();
+  effectstreamConfig = new EffectstreamConfig(
+    "minimal",
+    "mainEvmRPC",
+    contractAddress,
+    hardhat,
+    undefined,
+    BATCHER_URL,
+    true, // preferBatchedMode — required for Midnight wallet
+  );
+  return effectstreamConfig;
 }
+
+// ── Login ─────────────────────────────────────────────────────────────────────
 
 async function login() {
-  const wallet = await detectOneAmWallet();
+  const config = await loadConfig();
 
-  if (wallet) {
-    // Use 1AM wallet — the canonical PilotLog identity
-    const api = await wallet.connect("preview");
-    const { unshieldedAddress } = await api.getUnshieldedAddress();
-    mnAddr = unshieldedAddress;
-    console.log("[effectstream] 1AM wallet connected:", mnAddr);
-  } else {
-    // Dev fallback when 1AM wallet is not installed
-    mnAddr = "dev-pilot-fallback";
-    console.warn(
-      "[effectstream] 1AM wallet not found — using dev fallback address.",
-      "Install 1AM from https://1am.xyz/install-beta for full identity.",
-    );
-  }
-
-  return { address: mnAddr };
-}
-
-async function sendAction(actionArray) {
-  if (!mnAddr) throw new Error("Call effectstream.login() first");
-
-  const response = await fetch("/relay/submit", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ mnAddr, action: actionArray }),
+  const result = await walletLogin({
+    mode: WalletMode.Midnight,
+    networkId: "undeployed",
   });
 
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err.error || `relay submit failed (${response.status})`);
+  if (!result.success) {
+    throw new Error("Midnight wallet login failed: " + (result.errorMessage ?? "unknown"));
   }
 
-  const result = await response.json();
-  console.log("[tx-debug] effectstream relay submit:", result);
-  return {
-    success: true,
-    type: "server-relay",
-    hash: result.hash,
-    signerAddress: result.signerAddress,
-  };
+  wallet = result.result;
+  mnAddr = wallet.walletAddress;
+  console.log("[effectstream] Midnight wallet connected. address:", mnAddr);
+
+  return { address: mnAddr, signerAddress: null };
 }
 
-async function sendTransactionEffectstreamL2(input) {
-  return await sendAction(["my_action_name", input ?? "no-text"]);
+// ── Action submission ─────────────────────────────────────────────────────────
+
+async function sendCreateProfile(displayName, pilotPhase, notes) {
+  if (!wallet) throw new Error("Call effectstream.login() first");
+
+  const config = await loadConfig();
+  const actionArray = ["create_profile", displayName, pilotPhase, notes ?? ""];
+  const result = await sendTransaction(wallet, actionArray, config, "wait-receipt");
+  console.log("[tx-debug] create_profile result:", result);
+  return {
+    success: true,
+    type: result.type,
+    address: mnAddr,
+    ...result,
+  };
 }
 
 window.effectstream = {
   login,
-  sendTransactionEffectstreamL2,
-  sendAction,
+  sendCreateProfile,
   getWallet: () => ({ address: mnAddr }),
 };
