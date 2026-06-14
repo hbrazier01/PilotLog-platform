@@ -15,10 +15,18 @@ import {
   upsertProfile,
   createIdentity,
   getIdentityByWallet,
+  getIdentityByWalletAny,
   linkWallet,
   unlinkWallet,
   upsertProfileByIdentityId,
 } from "@pilotlog-sandbox/database";
+
+/** Derive the chain string from a signer address format. */
+function chainFromAddress(address: string): string {
+  if (address.startsWith("0x") || address.startsWith("0X")) return "evm";
+  if (address.startsWith("mn") || address.startsWith("mn_")) return "midnight";
+  return "evm"; // default: Effectstream routes through EVM
+}
 import { grammar } from "./grammar.ts";
 
 const stm = new Stm<typeof grammar, {}>(grammar);
@@ -27,9 +35,8 @@ stm.addStateTransition("log_flight", function* (data) {
   const { parsedInput, signerAddress } = data;
   const signerWallet = signerAddress!;
 
-  const identityRows = yield* World.resolve(getIdentityByWallet, {
+  const identityRows = yield* World.resolve(getIdentityByWalletAny, {
     wallet_address: signerWallet,
-    chain: "midnight",
   });
   if (!identityRows || identityRows.length === 0) {
     throw new Error(`No identity for signer ${signerWallet} — call create_identity first`);
@@ -49,9 +56,8 @@ stm.addStateTransition("create_student_request", function* (data) {
   const { parsedInput, signerAddress } = data;
   const signerWallet = signerAddress!;
 
-  const identityRows = yield* World.resolve(getIdentityByWallet, {
+  const identityRows = yield* World.resolve(getIdentityByWalletAny, {
     wallet_address: signerWallet,
-    chain: "midnight",
   });
   if (!identityRows || identityRows.length === 0) {
     throw new Error(`No identity for signer ${signerWallet} — call create_identity first`);
@@ -69,9 +75,8 @@ stm.addStateTransition("accept_student_request", function* (data) {
   const { parsedInput, signerAddress } = data;
   const signerWallet = signerAddress!;
 
-  const identityRows = yield* World.resolve(getIdentityByWallet, {
+  const identityRows = yield* World.resolve(getIdentityByWalletAny, {
     wallet_address: signerWallet,
-    chain: "midnight",
   });
   if (!identityRows || identityRows.length === 0) {
     throw new Error(`No identity for signer ${signerWallet} — call create_identity first`);
@@ -106,9 +111,8 @@ stm.addStateTransition("withdraw_student_request", function* (data) {
   const { parsedInput, signerAddress } = data;
   const signerWallet = signerAddress!;
 
-  const identityRows = yield* World.resolve(getIdentityByWallet, {
+  const identityRows = yield* World.resolve(getIdentityByWalletAny, {
     wallet_address: signerWallet,
-    chain: "midnight",
   });
   if (!identityRows || identityRows.length === 0) {
     throw new Error(`No identity for signer ${signerWallet} — call create_identity first`);
@@ -147,9 +151,8 @@ stm.addStateTransition("create_cfi_availability", function* (data) {
   const { parsedInput, signerAddress } = data;
   const signerWallet = signerAddress!;
 
-  const identityRows = yield* World.resolve(getIdentityByWallet, {
+  const identityRows = yield* World.resolve(getIdentityByWalletAny, {
     wallet_address: signerWallet,
-    chain: "midnight",
   });
   if (!identityRows || identityRows.length === 0) {
     throw new Error(`No identity for signer ${signerWallet} — call create_identity first`);
@@ -168,9 +171,8 @@ stm.addStateTransition("accept_cfi_availability", function* (data) {
   const { parsedInput, signerAddress } = data;
   const signerWallet = signerAddress!;
 
-  const identityRows = yield* World.resolve(getIdentityByWallet, {
+  const identityRows = yield* World.resolve(getIdentityByWalletAny, {
     wallet_address: signerWallet,
-    chain: "midnight",
   });
   if (!identityRows || identityRows.length === 0) {
     throw new Error(`No identity for signer ${signerWallet} — call create_identity first`);
@@ -206,9 +208,8 @@ stm.addStateTransition("withdraw_cfi_availability", function* (data) {
   const { parsedInput, signerAddress } = data;
   const signerWallet = signerAddress!;
 
-  const identityRows = yield* World.resolve(getIdentityByWallet, {
+  const identityRows = yield* World.resolve(getIdentityByWalletAny, {
     wallet_address: signerWallet,
-    chain: "midnight",
   });
   if (!identityRows || identityRows.length === 0) {
     throw new Error(`No identity for signer ${signerWallet} — call create_identity first`);
@@ -250,10 +251,10 @@ stm.addStateTransition("create_profile", function* (data) {
   // transaction signer — it cannot be overridden by the caller's payload.
   // Any walletAddress field the browser might have submitted is ignored here.
   const signerWallet = signerAddress!;
+  const chain = chainFromAddress(signerWallet);
 
-  const existing = yield* World.resolve(getIdentityByWallet, {
+  const existing = yield* World.resolve(getIdentityByWalletAny, {
     wallet_address: signerWallet,
-    chain: "midnight",
   });
 
   let identityId: string;
@@ -266,7 +267,7 @@ stm.addStateTransition("create_profile", function* (data) {
     identityId = created[0].identity_id;
     yield* World.resolve(linkWallet, {
       identity_id: identityId,
-      chain: "midnight",
+      chain,
       wallet_address: signerWallet,
       verification_status: "verified",
     });
@@ -284,10 +285,10 @@ stm.addStateTransition("create_profile", function* (data) {
 stm.addStateTransition("update_profile", function* (data) {
   const { parsedInput, signerAddress } = data;
   const signerWallet = signerAddress!;
+  const chain = chainFromAddress(signerWallet);
 
-  const existing = yield* World.resolve(getIdentityByWallet, {
+  const existing = yield* World.resolve(getIdentityByWalletAny, {
     wallet_address: signerWallet,
-    chain: "midnight",
   });
 
   let identityId: string;
@@ -300,7 +301,7 @@ stm.addStateTransition("update_profile", function* (data) {
     identityId = created[0].identity_id;
     yield* World.resolve(linkWallet, {
       identity_id: identityId,
-      chain: "midnight",
+      chain,
       wallet_address: signerWallet,
       verification_status: "verified",
     });
@@ -318,7 +319,8 @@ stm.addStateTransition("update_profile", function* (data) {
 stm.addStateTransition("create_identity", function* (data) {
   const { parsedInput, signerAddress } = data;
   const signerWallet = signerAddress!;
-  const chain = parsedInput.chain || "midnight";
+  // Use caller-supplied chain; if not provided, derive from address format.
+  const chain = parsedInput.chain || chainFromAddress(signerWallet);
 
   const existing = yield* World.resolve(getIdentityByWallet, {
     wallet_address: signerWallet,
@@ -347,9 +349,8 @@ stm.addStateTransition("link_wallet", function* (data) {
   const signerWallet = signerAddress!;
 
   // Verify the signer owns the identity being modified.
-  const ownerRows = yield* World.resolve(getIdentityByWallet, {
+  const ownerRows = yield* World.resolve(getIdentityByWalletAny, {
     wallet_address: signerWallet,
-    chain: "midnight",
   });
 
   if (!ownerRows || ownerRows.length === 0) {
@@ -377,9 +378,8 @@ stm.addStateTransition("unlink_wallet", function* (data) {
   const signerWallet = signerAddress!;
 
   // Verify the signer owns the identity being modified.
-  const ownerRows = yield* World.resolve(getIdentityByWallet, {
+  const ownerRows = yield* World.resolve(getIdentityByWalletAny, {
     wallet_address: signerWallet,
-    chain: "midnight",
   });
 
   if (!ownerRows || ownerRows.length === 0) {

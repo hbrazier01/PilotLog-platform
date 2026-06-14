@@ -543,6 +543,38 @@ const getIdentityByWalletIR: any = {"usedParamSet":{"wallet_address":true,"chain
 export const getIdentityByWallet = new PreparedQuery<IGetIdentityByWalletParams,IGetIdentityByWalletResult>(getIdentityByWalletIR);
 
 
+/** 'GetIdentityByWalletAny' parameters type */
+export interface IGetIdentityByWalletAnyParams {
+  wallet_address: string;
+}
+
+/** 'GetIdentityByWalletAny' return type */
+export interface IGetIdentityByWalletAnyResult {
+  created_at: Date;
+  identity_id: string;
+  primary_wallet: string;
+}
+
+export interface IGetIdentityByWalletAnyQuery {
+  params: IGetIdentityByWalletAnyParams;
+  result: IGetIdentityByWalletAnyResult;
+}
+
+const getIdentityByWalletAnyIR: any = {"usedParamSet":{"wallet_address":true},"params":[{"name":"wallet_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":115,"b":130}]}],"statement":"SELECT pi.identity_id, pi.primary_wallet, pi.created_at\nFROM pilot_identity pi\nJOIN identity_wallet iw ON iw.identity_id = pi.identity_id\nWHERE iw.wallet_address = :wallet_address!\nLIMIT 1"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT pi.identity_id, pi.primary_wallet, pi.created_at
+ * FROM pilot_identity pi
+ * JOIN identity_wallet iw ON iw.identity_id = pi.identity_id
+ * WHERE iw.wallet_address = :wallet_address!
+ * LIMIT 1
+ * ```
+ */
+export const getIdentityByWalletAny = new PreparedQuery<IGetIdentityByWalletAnyParams,IGetIdentityByWalletAnyResult>(getIdentityByWalletAnyIR);
+
+
 /** 'LinkWallet' parameters type */
 export interface ILinkWalletParams {
   chain: string;

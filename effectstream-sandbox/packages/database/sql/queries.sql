@@ -82,6 +82,13 @@ FROM pilot_identity pi
 JOIN identity_wallet iw ON iw.identity_id = pi.identity_id
 WHERE iw.wallet_address = :wallet_address! AND iw.chain = :chain!;
 
+/* @name getIdentityByWalletAny */
+SELECT pi.identity_id, pi.primary_wallet, pi.created_at
+FROM pilot_identity pi
+JOIN identity_wallet iw ON iw.identity_id = pi.identity_id
+WHERE iw.wallet_address = :wallet_address!
+LIMIT 1;
+
 /* @name linkWallet */
 INSERT INTO identity_wallet (identity_id, chain, wallet_address, verification_status)
 VALUES (:identity_id!, :chain!, :wallet_address!, :verification_status!)
