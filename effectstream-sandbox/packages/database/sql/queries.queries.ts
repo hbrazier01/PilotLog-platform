@@ -19,7 +19,7 @@ export interface IInsertProfileQuery {
   result: IInsertProfileResult;
 }
 
-const insertProfileIR: any = {"usedParamSet":{"signer_address":true,"display_name":true,"pilot_phase":true,"notes":true,"block_height":true},"params":[{"name":"signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":97,"b":112}]},{"name":"display_name","required":true,"transform":{"type":"scalar"},"locs":[{"a":115,"b":128}]},{"name":"pilot_phase","required":true,"transform":{"type":"scalar"},"locs":[{"a":131,"b":143}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":146,"b":152}]},{"name":"block_height","required":true,"transform":{"type":"scalar"},"locs":[{"a":155,"b":168}]}],"statement":"INSERT INTO pilot_profile (signer_address, display_name, pilot_phase, notes, block_height)\nVALUES (:signer_address!, :display_name!, :pilot_phase!, :notes!, :block_height!)"};
+const insertProfileIR: any = {"usedParamSet":{"signer_address":true,"display_name":true,"pilot_phase":true,"notes":true,"block_height":true},"params":[{"name":"signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":99,"b":114}]},{"name":"display_name","required":true,"transform":{"type":"scalar"},"locs":[{"a":117,"b":130}]},{"name":"pilot_phase","required":true,"transform":{"type":"scalar"},"locs":[{"a":133,"b":145}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":148,"b":154}]},{"name":"block_height","required":true,"transform":{"type":"scalar"},"locs":[{"a":157,"b":170}]}],"statement":"INSERT INTO pilot_profile (signer_address, display_name, pilot_phase, notes, block_height)\nVALUES (:signer_address!, :display_name!, :pilot_phase!, :notes!, :block_height!)"};
 
 /**
  * Query generated from SQL:
@@ -88,7 +88,7 @@ export interface IGetProfileBySignerQuery {
   result: IGetProfileBySignerResult;
 }
 
-const getProfileBySignerIR: any = {"usedParamSet":{"signer_address":true},"params":[{"name":"signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":57,"b":72}]}],"statement":"SELECT * FROM pilot_profile\nWHERE signer_address = :signer_address!\nORDER BY id DESC\nLIMIT 1"};
+const getProfileBySignerIR: any = {"usedParamSet":{"signer_address":true},"params":[{"name":"signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":51,"b":66}]}],"statement":"SELECT * FROM pilot_profile\nWHERE signer_address = :signer_address!\nORDER BY id DESC\nLIMIT 1"};
 
 /**
  * Query generated from SQL:
