@@ -125,13 +125,16 @@ export async function aircraftTest(db: Client) {
       "update_aircraft: owner can update manufacturer/model/year",
       db,
       `SELECT * FROM aircraft WHERE id = ${aircraftId}`,
-      (res) => res.rows.length === 1,
+      (res) => res.rows.length === 1 && res.rows[0].model === "SR22 GTS",
       (res) => res.rows[0].model === "SR22 GTS" && res.rows[0].year === 2023,
     );
 
     // ── 7. update_aircraft (unauthorized) ───────────────────────────────────
     await submit(wallet1, ["update_aircraft", aircraftId, "Cessna", "172", 2010, "Single Engine Land"]);
 
+    // The unauthorized wallet1 tx lands in the same block — wait long enough for it to process
+    // then verify the row is unchanged (still Cirrus/SR22 GTS from the authorized update)
+    await new Promise((r) => setTimeout(r, 3000));
     await assertSQL(
       "update_aircraft: unauthorized update has no effect (ownership enforced)",
       db,
@@ -159,6 +162,8 @@ export async function aircraftTest(db: Client) {
     // ── 9. deactivate_aircraft (unauthorized) ─────────────────────────────
     await submit(wallet0, ["deactivate_aircraft", deactivateId]);
 
+    // Wait for the unauthorized tx to be processed before checking the row is unchanged
+    await new Promise((r) => setTimeout(r, 3000));
     await assertSQL(
       "deactivate_aircraft: unauthorized deactivation has no effect (ownership enforced)",
       db,
@@ -174,7 +179,7 @@ export async function aircraftTest(db: Client) {
       "deactivate_aircraft: owner can deactivate, status=inactive",
       db,
       `SELECT * FROM aircraft WHERE id = ${deactivateId}`,
-      (res) => res.rows.length === 1,
+      (res) => res.rows.length === 1 && res.rows[0].status === "inactive",
       (res) => res.rows[0].status === "inactive",
     );
 
