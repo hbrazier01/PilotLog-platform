@@ -83,7 +83,7 @@ export async function opportunitiesTest(db: Client) {
       "accept_student_request: status=accepted, accepted_signer_address set",
       db,
       `SELECT * FROM student_request WHERE id = ${requestId}`,
-      (res) => res.rows.length === 1,
+      (res) => res.rows.length === 1 && res.rows[0].status === "accepted",
       (res) =>
         res.rows[0].status === "accepted" &&
         res.rows[0].accepted_signer_address === wallet1.address.toLowerCase(),
@@ -121,7 +121,7 @@ export async function opportunitiesTest(db: Client) {
       "withdraw_student_request: owner successfully withdraws",
       db,
       `SELECT * FROM student_request WHERE id = ${withdrawId}`,
-      (res) => res.rows.length === 1,
+      (res) => res.rows.length === 1 && res.rows[0].status === "withdrawn",
       (res) => res.rows[0].status === "withdrawn",
     );
   }
@@ -160,7 +160,7 @@ export async function opportunitiesTest(db: Client) {
       "accept_cfi_availability: status=accepted, accepted_signer_address set",
       db,
       `SELECT * FROM cfi_availability WHERE id = ${availabilityId}`,
-      (res) => res.rows.length === 1,
+      (res) => res.rows.length === 1 && res.rows[0].status === "accepted",
       (res) =>
         res.rows[0].status === "accepted" &&
         res.rows[0].accepted_signer_address === wallet0.address.toLowerCase(),
@@ -198,7 +198,7 @@ export async function opportunitiesTest(db: Client) {
       "withdraw_cfi_availability: owner successfully withdraws",
       db,
       `SELECT * FROM cfi_availability WHERE id = ${withdrawAvailId}`,
-      (res) => res.rows.length === 1,
+      (res) => res.rows.length === 1 && res.rows[0].status === "withdrawn",
       (res) => res.rows[0].status === "withdrawn",
     );
   }
