@@ -15,6 +15,10 @@ import {
   getTrainingRecordById,
   getTrainingRecordsBySigner,
   getTrainingRecordsByFlight,
+  getAllEndorsements,
+  getEndorsementById,
+  getEndorsementsBySigner,
+  getEndorsementsByTrainingRecord,
 } from "@pilotlog-sandbox/database";
 import type { Pool } from "pg";
 import type { StartConfigApiRouter } from "@effectstream/runtime";
@@ -179,4 +183,49 @@ export const apiRouter: StartConfigApiRouter = async function (
     );
     reply.send({ trainingRecords: result });
   });
+
+  server.get("/api/endorsements", async (_request, reply) => {
+    const result = await runPreparedQuery(
+      getAllEndorsements.run(undefined, dbConn),
+      "/api/endorsements",
+    );
+    reply.send({ endorsements: result });
+  });
+
+  server.get<{ Params: { id: string } }>("/api/endorsements/:id", async (request, reply) => {
+    const id = parseInt(request.params.id, 10);
+    if (isNaN(id)) {
+      return reply.status(400).send({ error: "Invalid endorsement id" });
+    }
+    const result = await runPreparedQuery(
+      getEndorsementById.run({ id }, dbConn),
+      "/api/endorsements/:id",
+    );
+    if (result.length === 0) {
+      return reply.status(404).send({ error: "Endorsement not found" });
+    }
+    reply.send({ endorsement: result[0] });
+  });
+
+  server.get<{ Params: { signer: string } }>("/api/my-endorsements/:signer", async (request, reply) => {
+    const { signer } = request.params;
+    const result = await runPreparedQuery(
+      getEndorsementsBySigner.run({ student_signer_address: signer.toLowerCase() }, dbConn),
+      "/api/my-endorsements/:signer",
+    );
+    reply.send({ endorsements: result });
+  });
+
+  server.get<{ Params: { id: string } }>("/api/training-records/:id/endorsements", async (request, reply) => {
+    const id = parseInt(request.params.id, 10);
+    if (isNaN(id)) {
+      return reply.status(400).send({ error: "Invalid training record id" });
+    }
+    const result = await runPreparedQuery(
+      getEndorsementsByTrainingRecord.run({ training_record_id: id }, dbConn),
+      "/api/training-records/:id/endorsements",
+    );
+    reply.send({ endorsements: result });
+  });
+
 };

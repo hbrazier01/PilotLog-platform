@@ -88,4 +88,17 @@ export const grammar = {
   complete_training_record: [
     ["trainingRecordId", Type.Integer({ minimum: 1 })],
   ],
+
+  create_endorsement: [
+    ["trainingRecordId", Type.Integer({ minimum: 1 })],
+    ["endorsementType", Type.String({ maxLength: 64 })],
+    ["notes", Type.String({ maxLength: 1024 })],
+  ],
+  approve_endorsement: [
+    ["endorsementId", Type.Integer({ minimum: 1 })],
+  ],
+  reject_endorsement: [
+    ["endorsementId", Type.Integer({ minimum: 1 })],
+    ["notes", Type.String({ maxLength: 1024 })],
+  ],
 } as const satisfies GrammarDefinition;

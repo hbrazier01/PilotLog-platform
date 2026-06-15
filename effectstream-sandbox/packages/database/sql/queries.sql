@@ -106,3 +106,28 @@ SELECT * FROM training_record WHERE student_signer_address = :student_signer_add
 
 /* @name getTrainingRecordsByFlight */
 SELECT * FROM training_record WHERE flight_log_id = :flight_log_id! ORDER BY id DESC LIMIT 100;
+
+/* @name insertEndorsement */
+INSERT INTO endorsement (training_record_id, student_signer_address, instructor_signer_address, endorsement_type, notes, block_height)
+SELECT :training_record_id!, :student_signer_address!, tr.instructor_signer_address, :endorsement_type!, :notes!, :block_height!
+FROM training_record tr WHERE tr.id = :training_record_id! AND tr.status = 'active';
+
+/* @name approveEndorsement */
+UPDATE endorsement SET status = 'approved', approved_by_signer_address = :approved_by_signer_address!, updated_at = NOW()
+WHERE id = :id! AND instructor_signer_address = :approved_by_signer_address! AND status = 'pending';
+
+/* @name rejectEndorsement */
+UPDATE endorsement SET status = 'rejected', approved_by_signer_address = :approved_by_signer_address!, updated_at = NOW()
+WHERE id = :id! AND instructor_signer_address = :approved_by_signer_address! AND status = 'pending';
+
+/* @name getAllEndorsements */
+SELECT * FROM endorsement ORDER BY id DESC LIMIT 100;
+
+/* @name getEndorsementById */
+SELECT * FROM endorsement WHERE id = :id!;
+
+/* @name getEndorsementsBySigner */
+SELECT * FROM endorsement WHERE student_signer_address = :student_signer_address! OR instructor_signer_address = :student_signer_address! ORDER BY id DESC LIMIT 100;
+
+/* @name getEndorsementsByTrainingRecord */
+SELECT * FROM endorsement WHERE training_record_id = :training_record_id! ORDER BY id DESC LIMIT 100;

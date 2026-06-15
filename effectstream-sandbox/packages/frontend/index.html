@@ -138,6 +138,88 @@
         <h3>Flight Log (GET /api/flights)</h3>
         <button onclick="fetchFlights()">Refresh</button>
         <div id="fl-display"></div>
+
+        <hr />
+        <h2>Training Records</h2>
+
+        <h3>Create Training Record</h3>
+        <input id="tr-instructor" type="text" placeholder="Instructor Signer Address (0x...)" />
+        <input id="tr-flight-id" type="number" placeholder="Flight Log ID" />
+        <select id="tr-type">
+          <option value="">Select Training Type</option>
+          <option value="Discovery Flight">Discovery Flight</option>
+          <option value="PPL Lesson">PPL Lesson</option>
+          <option value="Solo Preparation">Solo Preparation</option>
+          <option value="Cross Country Training">Cross Country Training</option>
+          <option value="Night Training">Night Training</option>
+          <option value="Instrument Training">Instrument Training</option>
+          <option value="Commercial Training">Commercial Training</option>
+          <option value="CFI Training">CFI Training</option>
+        </select>
+        <input id="tr-notes" type="text" placeholder="Notes (optional)" />
+        <button onclick="createTrainingRecord()">Create Training Record</button>
+        <div id="tr-create-result"></div>
+
+        <h3>Update Training Record</h3>
+        <input id="tr-update-id" type="number" placeholder="Training Record ID" />
+        <select id="tr-update-type">
+          <option value="">Select Training Type</option>
+          <option value="Discovery Flight">Discovery Flight</option>
+          <option value="PPL Lesson">PPL Lesson</option>
+          <option value="Solo Preparation">Solo Preparation</option>
+          <option value="Cross Country Training">Cross Country Training</option>
+          <option value="Night Training">Night Training</option>
+          <option value="Instrument Training">Instrument Training</option>
+          <option value="Commercial Training">Commercial Training</option>
+          <option value="CFI Training">CFI Training</option>
+        </select>
+        <input id="tr-update-notes" type="text" placeholder="Notes (optional)" />
+        <button onclick="updateTrainingRecordAction()">Update Training Record</button>
+        <div id="tr-update-result"></div>
+
+        <h3>Complete Training Record</h3>
+        <input id="tr-complete-id" type="number" placeholder="Training Record ID" />
+        <button onclick="completeTrainingRecordAction()">Complete Training Record</button>
+        <div id="tr-complete-result"></div>
+
+        <h3>Training Records (GET /api/training-records)</h3>
+        <button onclick="fetchTrainingRecords()">Refresh</button>
+        <div id="tr-display"></div>
+
+        <hr />
+        <h2>Endorsements</h2>
+
+        <h3>Request Endorsement</h3>
+        <input id="en-training-id" type="number" placeholder="Training Record ID" />
+        <select id="en-type">
+          <option value="">Select Endorsement Type</option>
+          <option value="Discovery Flight Complete">Discovery Flight Complete</option>
+          <option value="Pre-Solo Review">Pre-Solo Review</option>
+          <option value="Solo Ready">Solo Ready</option>
+          <option value="Cross Country Ready">Cross Country Ready</option>
+          <option value="Night Training Complete">Night Training Complete</option>
+          <option value="Instrument Training Complete">Instrument Training Complete</option>
+          <option value="Commercial Training Complete">Commercial Training Complete</option>
+          <option value="CFI Training Complete">CFI Training Complete</option>
+        </select>
+        <input id="en-notes" type="text" placeholder="Notes (optional)" />
+        <button onclick="createEndorsement()">Request Endorsement</button>
+        <div id="en-create-result"></div>
+
+        <h3>Approve Endorsement</h3>
+        <input id="en-approve-id" type="number" placeholder="Endorsement ID" />
+        <button onclick="approveEndorsementAction()">Approve</button>
+        <div id="en-approve-result"></div>
+
+        <h3>Reject Endorsement</h3>
+        <input id="en-reject-id" type="number" placeholder="Endorsement ID" />
+        <input id="en-reject-notes" type="text" placeholder="Rejection notes" />
+        <button onclick="rejectEndorsementAction()">Reject</button>
+        <div id="en-reject-result"></div>
+
+        <h3>Endorsements (GET /api/endorsements)</h3>
+        <button onclick="fetchEndorsements()">Refresh</button>
+        <div id="en-display"></div>
     </div>
 </body>
 
@@ -512,6 +594,70 @@
                 Flight Log ID: ${r.flight_log_id} | Aircraft ID: ${r.aircraft_id}<br/>
                 <small>${new Date(r.created_at).toLocaleString()}</small>
                 ${r.notes ? `<br/><em>${r.notes}</em>` : ""}
+            </div>
+        `).join("");
+    }
+
+    async function createEndorsement() {
+        const trainingId = parseInt(document.getElementById("en-training-id").value, 10);
+        const endorsementType = document.getElementById("en-type").value;
+        const notes = document.getElementById("en-notes").value || "";
+        document.getElementById("en-create-result").innerText = "Submitting...";
+        try {
+            const result = await effectstream.sendAction([
+                "create_endorsement", trainingId, endorsementType, notes
+            ]);
+            console.log("[tx-debug] create_endorsement:", result);
+            document.getElementById("en-create-result").innerText = "Endorsement requested! " + JSON.stringify(result, null, 2);
+            await fetchEndorsements();
+        } catch (err) {
+            document.getElementById("en-create-result").innerText = "Error: " + err.message;
+        }
+    }
+
+    async function approveEndorsementAction() {
+        const id = parseInt(document.getElementById("en-approve-id").value, 10);
+        document.getElementById("en-approve-result").innerText = "Submitting...";
+        try {
+            const result = await effectstream.sendAction(["approve_endorsement", id]);
+            console.log("[tx-debug] approve_endorsement:", result);
+            document.getElementById("en-approve-result").innerText = "Approved! " + JSON.stringify(result, null, 2);
+            await fetchEndorsements();
+        } catch (err) {
+            document.getElementById("en-approve-result").innerText = "Error: " + err.message;
+        }
+    }
+
+    async function rejectEndorsementAction() {
+        const id = parseInt(document.getElementById("en-reject-id").value, 10);
+        const notes = document.getElementById("en-reject-notes").value || "";
+        document.getElementById("en-reject-result").innerText = "Submitting...";
+        try {
+            const result = await effectstream.sendAction(["reject_endorsement", id, notes]);
+            console.log("[tx-debug] reject_endorsement:", result);
+            document.getElementById("en-reject-result").innerText = "Rejected! " + JSON.stringify(result, null, 2);
+            await fetchEndorsements();
+        } catch (err) {
+            document.getElementById("en-reject-result").innerText = "Error: " + err.message;
+        }
+    }
+
+    async function fetchEndorsements() {
+        const data = await fetch(`${API}/api/endorsements`).then(r => r.json());
+        const container = document.getElementById("en-display");
+        if (!data.endorsements || data.endorsements.length === 0) {
+            container.innerHTML = "<p>No endorsements.</p>";
+            return;
+        }
+        container.innerHTML = data.endorsements.map(e => `
+            <div style="border:1px solid #ccc; padding:8px; margin:8px 0; border-radius:4px;">
+                <strong>ID ${e.id}</strong> — ${e.endorsement_type} — <em>${e.status}</em><br/>
+                Student: ${e.student_signer_address}<br/>
+                Instructor: ${e.instructor_signer_address}<br/>
+                ${e.approved_by_signer_address ? `Approved by: ${e.approved_by_signer_address}<br/>` : ""}
+                Training Record ID: ${e.training_record_id}<br/>
+                <small>${new Date(e.created_at).toLocaleString()}</small>
+                ${e.notes ? `<br/><em>${e.notes}</em>` : ""}
             </div>
         `).join("");
     }

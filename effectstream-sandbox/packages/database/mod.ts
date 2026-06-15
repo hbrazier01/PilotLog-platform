@@ -16,3 +16,7 @@ export {
   insertTrainingRecord, updateTrainingRecord, completeTrainingRecord,
   getAllTrainingRecords, getTrainingRecordById, getTrainingRecordsBySigner, getTrainingRecordsByFlight,
 } from "./sql/queries.queries.ts";
+export {
+  insertEndorsement, approveEndorsement, rejectEndorsement,
+  getAllEndorsements, getEndorsementById, getEndorsementsBySigner, getEndorsementsByTrainingRecord,
+} from "./sql/queries.queries.ts";

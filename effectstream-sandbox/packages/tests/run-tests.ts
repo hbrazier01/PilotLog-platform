@@ -148,6 +148,11 @@ async function test() {
     const { trainingTest } = await import("./stm/training.test.ts");
     await trainingTest(db);
 
+
+    console.log("\n--- Phase I: Endorsement Foundation (AIR-355) ---\n");
+    const { endorsementTest } = await import("./stm/endorsement.test.ts");
+    await endorsementTest(db);
+
     printSummary();
   } catch (e) {
     printSummary();

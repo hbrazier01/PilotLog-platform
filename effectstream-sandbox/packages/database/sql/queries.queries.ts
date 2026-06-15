@@ -953,3 +953,236 @@ const getTrainingRecordsByFlightIR: any = {"usedParamSet":{"flight_log_id":true}
  * ```
  */
 export const getTrainingRecordsByFlight = new PreparedQuery<IGetTrainingRecordsByFlightParams,IGetTrainingRecordsByFlightResult>(getTrainingRecordsByFlightIR);
+
+/** 'InsertEndorsement' parameters type */
+export interface IInsertEndorsementParams {
+  training_record_id: number;
+  student_signer_address: string;
+  endorsement_type: string;
+  notes: string;
+  block_height: number;
+}
+
+/** 'InsertEndorsement' return type */
+export interface IInsertEndorsementResult {
+  id: number;
+}
+
+/** 'InsertEndorsement' query type */
+export interface IInsertEndorsementQuery {
+  params: IInsertEndorsementParams;
+  result: IInsertEndorsementResult;
+}
+
+const insertEndorsementIR: any = {"usedParamSet":{"training_record_id":true,"student_signer_address":true,"endorsement_type":true,"notes":true,"block_height":true},"params":[{"name":"training_record_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":136,"b":155},{"a":280,"b":299}]},{"name":"student_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":158,"b":181}]},{"name":"endorsement_type","required":true,"transform":{"type":"scalar"},"locs":[{"a":216,"b":233}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":236,"b":242}]},{"name":"block_height","required":true,"transform":{"type":"scalar"},"locs":[{"a":245,"b":258}]}],"statement":"INSERT INTO endorsement (training_record_id, student_signer_address, instructor_signer_address, endorsement_type, notes, block_height)\nSELECT :training_record_id!, :student_signer_address!, tr.instructor_signer_address, :endorsement_type!, :notes!, :block_height!\nFROM training_record tr WHERE tr.id = :training_record_id! AND tr.status = 'active'"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO endorsement (training_record_id, student_signer_address, instructor_signer_address, endorsement_type, notes, block_height)
+ * SELECT :training_record_id!, :student_signer_address!, tr.instructor_signer_address, :endorsement_type!, :notes!, :block_height!
+ * FROM training_record tr WHERE tr.id = :training_record_id! AND tr.status = 'active'
+ * ```
+ */
+export const insertEndorsement = new PreparedQuery<IInsertEndorsementParams,IInsertEndorsementResult>(insertEndorsementIR);
+
+/** 'ApproveEndorsement' parameters type */
+export interface IApproveEndorsementParams {
+  id: number;
+  approved_by_signer_address: string;
+}
+
+/** 'ApproveEndorsement' return type */
+export interface IApproveEndorsementResult {
+  id: number;
+}
+
+/** 'ApproveEndorsement' query type */
+export interface IApproveEndorsementQuery {
+  params: IApproveEndorsementParams;
+  result: IApproveEndorsementResult;
+}
+
+const approveEndorsementIR: any = {"usedParamSet":{"approved_by_signer_address":true,"id":true},"params":[{"name":"approved_by_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":63,"b":89},{"a":131,"b":157}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":108,"b":111}]}],"statement":"UPDATE endorsement SET status = 'approved', approved_by_signer_address = :approved_by_signer_address!, updated_at = NOW() WHERE id = :id! AND instructor_signer_address = :approved_by_signer_address! AND status = 'pending'"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE endorsement SET status = 'approved', approved_by_signer_address = :approved_by_signer_address!, updated_at = NOW()
+ * WHERE id = :id! AND instructor_signer_address = :approved_by_signer_address! AND status = 'pending'
+ * ```
+ */
+export const approveEndorsement = new PreparedQuery<IApproveEndorsementParams,IApproveEndorsementResult>(approveEndorsementIR);
+
+/** 'RejectEndorsement' parameters type */
+export interface IRejectEndorsementParams {
+  id: number;
+  approved_by_signer_address: string;
+}
+
+/** 'RejectEndorsement' return type */
+export interface IRejectEndorsementResult {
+  id: number;
+}
+
+/** 'RejectEndorsement' query type */
+export interface IRejectEndorsementQuery {
+  params: IRejectEndorsementParams;
+  result: IRejectEndorsementResult;
+}
+
+const rejectEndorsementIR: any = {"usedParamSet":{"approved_by_signer_address":true,"id":true},"params":[{"name":"approved_by_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":63,"b":89},{"a":131,"b":157}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":108,"b":111}]}],"statement":"UPDATE endorsement SET status = 'rejected', approved_by_signer_address = :approved_by_signer_address!, updated_at = NOW() WHERE id = :id! AND instructor_signer_address = :approved_by_signer_address! AND status = 'pending'"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE endorsement SET status = 'rejected', approved_by_signer_address = :approved_by_signer_address!, updated_at = NOW()
+ * WHERE id = :id! AND instructor_signer_address = :approved_by_signer_address! AND status = 'pending'
+ * ```
+ */
+export const rejectEndorsement = new PreparedQuery<IRejectEndorsementParams,IRejectEndorsementResult>(rejectEndorsementIR);
+
+/** 'GetAllEndorsements' parameters type */
+export interface IGetAllEndorsementsParams {
+  /** Filter returned query to conditions */
+  __truthyValue?: any;
+}
+
+/** 'GetAllEndorsements' return type */
+export interface IGetAllEndorsementsResult {
+  id: number;
+  training_record_id: number;
+  student_signer_address: string;
+  instructor_signer_address: string;
+  approved_by_signer_address: string | null;
+  endorsement_type: string;
+  status: string;
+  notes: string;
+  created_at: Date;
+  updated_at: Date;
+  block_height: number;
+}
+
+/** 'GetAllEndorsements' query type */
+export interface IGetAllEndorsementsQuery {
+  params: IGetAllEndorsementsParams;
+  result: IGetAllEndorsementsResult;
+}
+
+const getAllEndorsementsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT * FROM endorsement ORDER BY id DESC LIMIT 100"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT * FROM endorsement ORDER BY id DESC LIMIT 100
+ * ```
+ */
+export const getAllEndorsements = new PreparedQuery<IGetAllEndorsementsParams,IGetAllEndorsementsResult>(getAllEndorsementsIR);
+
+/** 'GetEndorsementById' parameters type */
+export interface IGetEndorsementByIdParams {
+  id: number;
+}
+
+/** 'GetEndorsementById' return type */
+export interface IGetEndorsementByIdResult {
+  id: number;
+  training_record_id: number;
+  student_signer_address: string;
+  instructor_signer_address: string;
+  approved_by_signer_address: string | null;
+  endorsement_type: string;
+  status: string;
+  notes: string;
+  created_at: Date;
+  updated_at: Date;
+  block_height: number;
+}
+
+/** 'GetEndorsementById' query type */
+export interface IGetEndorsementByIdQuery {
+  params: IGetEndorsementByIdParams;
+  result: IGetEndorsementByIdResult;
+}
+
+const getEndorsementByIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":36,"b":39}]}],"statement":"SELECT * FROM endorsement WHERE id = :id!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT * FROM endorsement WHERE id = :id!
+ * ```
+ */
+export const getEndorsementById = new PreparedQuery<IGetEndorsementByIdParams,IGetEndorsementByIdResult>(getEndorsementByIdIR);
+
+/** 'GetEndorsementsBySigner' parameters type */
+export interface IGetEndorsementsBySignerParams {
+  student_signer_address: string;
+}
+
+/** 'GetEndorsementsBySigner' return type */
+export interface IGetEndorsementsBySignerResult {
+  id: number;
+  training_record_id: number;
+  student_signer_address: string;
+  instructor_signer_address: string;
+  approved_by_signer_address: string | null;
+  endorsement_type: string;
+  status: string;
+  notes: string;
+  created_at: Date;
+  updated_at: Date;
+  block_height: number;
+}
+
+/** 'GetEndorsementsBySigner' query type */
+export interface IGetEndorsementsBySignerQuery {
+  params: IGetEndorsementsBySignerParams;
+  result: IGetEndorsementsBySignerResult;
+}
+
+const getEndorsementsBySignerIR: any = {"usedParamSet":{"student_signer_address":true},"params":[{"name":"student_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":57,"b":80},{"a":113,"b":136}]}],"statement":"SELECT * FROM endorsement WHERE student_signer_address = :student_signer_address! OR instructor_signer_address = :student_signer_address! ORDER BY id DESC LIMIT 100"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT * FROM endorsement WHERE student_signer_address = :student_signer_address! OR instructor_signer_address = :student_signer_address! ORDER BY id DESC LIMIT 100
+ * ```
+ */
+export const getEndorsementsBySigner = new PreparedQuery<IGetEndorsementsBySignerParams,IGetEndorsementsBySignerResult>(getEndorsementsBySignerIR);
+
+/** 'GetEndorsementsByTrainingRecord' parameters type */
+export interface IGetEndorsementsByTrainingRecordParams {
+  training_record_id: number;
+}
+
+/** 'GetEndorsementsByTrainingRecord' return type */
+export interface IGetEndorsementsByTrainingRecordResult {
+  id: number;
+  training_record_id: number;
+  student_signer_address: string;
+  instructor_signer_address: string;
+  approved_by_signer_address: string | null;
+  endorsement_type: string;
+  status: string;
+  notes: string;
+  created_at: Date;
+  updated_at: Date;
+  block_height: number;
+}
+
+/** 'GetEndorsementsByTrainingRecord' query type */
+export interface IGetEndorsementsByTrainingRecordQuery {
+  params: IGetEndorsementsByTrainingRecordParams;
+  result: IGetEndorsementsByTrainingRecordResult;
+}
+
+const getEndorsementsByTrainingRecordIR: any = {"usedParamSet":{"training_record_id":true},"params":[{"name":"training_record_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":52,"b":70}]}],"statement":"SELECT * FROM endorsement WHERE training_record_id = :training_record_id! ORDER BY id DESC LIMIT 100"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT * FROM endorsement WHERE training_record_id = :training_record_id! ORDER BY id DESC LIMIT 100
+ * ```
+ */
+export const getEndorsementsByTrainingRecord = new PreparedQuery<IGetEndorsementsByTrainingRecordParams,IGetEndorsementsByTrainingRecordResult>(getEndorsementsByTrainingRecordIR);

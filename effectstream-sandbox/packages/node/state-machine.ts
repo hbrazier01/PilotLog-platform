@@ -19,6 +19,9 @@ import {
   insertTrainingRecord,
   updateTrainingRecord,
   completeTrainingRecord,
+  insertEndorsement,
+  approveEndorsement,
+  rejectEndorsement,
 } from "@pilotlog-sandbox/database";
 import { grammar } from "./grammar.ts";
 
@@ -202,6 +205,42 @@ stm.addStateTransition("complete_training_record", function* (data) {
   yield* World.resolve(completeTrainingRecord, {
     id: parsedInput.trainingRecordId,
     student_signer_address: signerAddress!.toLowerCase(),
+  });
+});
+
+
+
+stm.addStateTransition("create_endorsement", function* (data) {
+  const { parsedInput, signerAddress, blockHeight } = data;
+  const validTypes = [
+    "Discovery Flight Complete", "Pre-Solo Review", "Solo Ready", "Cross Country Ready",
+    "Night Training Complete", "Instrument Training Complete",
+    "Commercial Training Complete", "CFI Training Complete",
+  ];
+  if (!validTypes.includes(parsedInput.endorsementType)) return;
+
+  yield* World.resolve(insertEndorsement, {
+    training_record_id: parsedInput.trainingRecordId,
+    student_signer_address: signerAddress!.toLowerCase(),
+    endorsement_type: parsedInput.endorsementType,
+    notes: parsedInput.notes ?? "",
+    block_height: blockHeight,
+  });
+});
+
+stm.addStateTransition("approve_endorsement", function* (data) {
+  const { parsedInput, signerAddress } = data;
+  yield* World.resolve(approveEndorsement, {
+    id: parsedInput.endorsementId,
+    approved_by_signer_address: signerAddress!.toLowerCase(),
+  });
+});
+
+stm.addStateTransition("reject_endorsement", function* (data) {
+  const { parsedInput, signerAddress } = data;
+  yield* World.resolve(rejectEndorsement, {
+    id: parsedInput.endorsementId,
+    approved_by_signer_address: signerAddress!.toLowerCase(),
   });
 });
 
