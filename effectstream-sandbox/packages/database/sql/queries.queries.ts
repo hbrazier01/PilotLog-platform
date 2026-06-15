@@ -100,3 +100,187 @@ const getProfileBySignerIR: any = {"usedParamSet":{"signer_address":true},"param
  * ```
  */
 export const getProfileBySigner = new PreparedQuery<IGetProfileBySignerParams,IGetProfileBySignerResult>(getProfileBySignerIR);
+
+
+// ── Student Requests ───────────────────────────────────────────────────────────
+
+/** 'InsertStudentRequest' parameters type */
+export interface IInsertStudentRequestParams {
+  owner_signer_address: string;
+  aircraft_ident: string;
+  notes: string;
+  block_height: number;
+}
+
+/** 'InsertStudentRequest' return type */
+export type IInsertStudentRequestResult = void;
+
+/** 'InsertStudentRequest' query type */
+export interface IInsertStudentRequestQuery {
+  params: IInsertStudentRequestParams;
+  result: IInsertStudentRequestResult;
+}
+
+const insertStudentRequestIR: any = {"usedParamSet":{"owner_signer_address":true,"aircraft_ident":true,"notes":true,"block_height":true},"params":[{"name":"owner_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":96,"b":118}]},{"name":"aircraft_ident","required":true,"transform":{"type":"scalar"},"locs":[{"a":120,"b":136}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":138,"b":145}]},{"name":"block_height","required":true,"transform":{"type":"scalar"},"locs":[{"a":147,"b":161}]}],"statement":"INSERT INTO student_request (owner_signer_address, aircraft_ident, notes, block_height)\nVALUES (:owner_signer_address!, :aircraft_ident!, :notes!, :block_height!)"};
+
+export const insertStudentRequest = new PreparedQuery<IInsertStudentRequestParams,IInsertStudentRequestResult>(insertStudentRequestIR);
+
+
+/** 'AcceptStudentRequest' parameters type */
+export interface IAcceptStudentRequestParams {
+  accepted_signer_address: string;
+  id: number;
+}
+
+/** 'AcceptStudentRequest' return type */
+export type IAcceptStudentRequestResult = void;
+
+/** 'AcceptStudentRequest' query type */
+export interface IAcceptStudentRequestQuery {
+  params: IAcceptStudentRequestParams;
+  result: IAcceptStudentRequestResult;
+}
+
+const acceptStudentRequestIR: any = {"usedParamSet":{"accepted_signer_address":true,"id":true},"params":[{"name":"accepted_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":74,"b":99}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":131,"b":135}]}],"statement":"UPDATE student_request SET status = 'accepted', accepted_signer_address = :accepted_signer_address!, updated_at = NOW() WHERE id = :id! AND status = 'open'"};
+
+export const acceptStudentRequest = new PreparedQuery<IAcceptStudentRequestParams,IAcceptStudentRequestResult>(acceptStudentRequestIR);
+
+
+/** 'WithdrawStudentRequest' parameters type */
+export interface IWithdrawStudentRequestParams {
+  id: number;
+  owner_signer_address: string;
+}
+
+/** 'WithdrawStudentRequest' return type */
+export type IWithdrawStudentRequestResult = void;
+
+/** 'WithdrawStudentRequest' query type */
+export interface IWithdrawStudentRequestQuery {
+  params: IWithdrawStudentRequestParams;
+  result: IWithdrawStudentRequestResult;
+}
+
+const withdrawStudentRequestIR: any = {"usedParamSet":{"id":true,"owner_signer_address":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":79,"b":83}]},{"name":"owner_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":111,"b":133}]}],"statement":"UPDATE student_request SET status = 'withdrawn', updated_at = NOW() WHERE id = :id! AND owner_signer_address = :owner_signer_address! AND status = 'open'"};
+
+export const withdrawStudentRequest = new PreparedQuery<IWithdrawStudentRequestParams,IWithdrawStudentRequestResult>(withdrawStudentRequestIR);
+
+
+/** 'GetAllStudentRequests' parameters type */
+export type IGetAllStudentRequestsParams = void;
+
+/** 'GetAllStudentRequests' return type */
+export interface IGetAllStudentRequestsResult {
+  id: number;
+  owner_signer_address: string;
+  aircraft_ident: string;
+  notes: string;
+  status: string;
+  accepted_signer_address: string | null;
+  created_at: Date;
+  updated_at: Date;
+  block_height: number;
+}
+
+/** 'GetAllStudentRequests' query type */
+export interface IGetAllStudentRequestsQuery {
+  params: IGetAllStudentRequestsParams;
+  result: IGetAllStudentRequestsResult;
+}
+
+const getAllStudentRequestsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT * FROM student_request ORDER BY id DESC LIMIT 100"};
+
+export const getAllStudentRequests = new PreparedQuery<IGetAllStudentRequestsParams,IGetAllStudentRequestsResult>(getAllStudentRequestsIR);
+
+
+// ── CFI Availability ───────────────────────────────────────────────────────────
+
+/** 'InsertCfiAvailability' parameters type */
+export interface IInsertCfiAvailabilityParams {
+  owner_signer_address: string;
+  aircraft_ident: string;
+  hourly_rate: number;
+  notes: string;
+  block_height: number;
+}
+
+/** 'InsertCfiAvailability' return type */
+export type IInsertCfiAvailabilityResult = void;
+
+/** 'InsertCfiAvailability' query type */
+export interface IInsertCfiAvailabilityQuery {
+  params: IInsertCfiAvailabilityParams;
+  result: IInsertCfiAvailabilityResult;
+}
+
+const insertCfiAvailabilityIR: any = {"usedParamSet":{"owner_signer_address":true,"aircraft_ident":true,"hourly_rate":true,"notes":true,"block_height":true},"params":[{"name":"owner_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":110,"b":132}]},{"name":"aircraft_ident","required":true,"transform":{"type":"scalar"},"locs":[{"a":134,"b":150}]},{"name":"hourly_rate","required":true,"transform":{"type":"scalar"},"locs":[{"a":152,"b":165}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":167,"b":174}]},{"name":"block_height","required":true,"transform":{"type":"scalar"},"locs":[{"a":176,"b":190}]}],"statement":"INSERT INTO cfi_availability (owner_signer_address, aircraft_ident, hourly_rate, notes, block_height)\nVALUES (:owner_signer_address!, :aircraft_ident!, :hourly_rate!, :notes!, :block_height!)"};
+
+export const insertCfiAvailability = new PreparedQuery<IInsertCfiAvailabilityParams,IInsertCfiAvailabilityResult>(insertCfiAvailabilityIR);
+
+
+/** 'AcceptCfiAvailability' parameters type */
+export interface IAcceptCfiAvailabilityParams {
+  accepted_signer_address: string;
+  id: number;
+}
+
+/** 'AcceptCfiAvailability' return type */
+export type IAcceptCfiAvailabilityResult = void;
+
+/** 'AcceptCfiAvailability' query type */
+export interface IAcceptCfiAvailabilityQuery {
+  params: IAcceptCfiAvailabilityParams;
+  result: IAcceptCfiAvailabilityResult;
+}
+
+const acceptCfiAvailabilityIR: any = {"usedParamSet":{"accepted_signer_address":true,"id":true},"params":[{"name":"accepted_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":75,"b":100}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":132,"b":136}]}],"statement":"UPDATE cfi_availability SET status = 'accepted', accepted_signer_address = :accepted_signer_address!, updated_at = NOW() WHERE id = :id! AND status = 'open'"};
+
+export const acceptCfiAvailability = new PreparedQuery<IAcceptCfiAvailabilityParams,IAcceptCfiAvailabilityResult>(acceptCfiAvailabilityIR);
+
+
+/** 'WithdrawCfiAvailability' parameters type */
+export interface IWithdrawCfiAvailabilityParams {
+  id: number;
+  owner_signer_address: string;
+}
+
+/** 'WithdrawCfiAvailability' return type */
+export type IWithdrawCfiAvailabilityResult = void;
+
+/** 'WithdrawCfiAvailability' query type */
+export interface IWithdrawCfiAvailabilityQuery {
+  params: IWithdrawCfiAvailabilityParams;
+  result: IWithdrawCfiAvailabilityResult;
+}
+
+const withdrawCfiAvailabilityIR: any = {"usedParamSet":{"id":true,"owner_signer_address":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":80,"b":84}]},{"name":"owner_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":112,"b":134}]}],"statement":"UPDATE cfi_availability SET status = 'withdrawn', updated_at = NOW() WHERE id = :id! AND owner_signer_address = :owner_signer_address! AND status = 'open'"};
+
+export const withdrawCfiAvailability = new PreparedQuery<IWithdrawCfiAvailabilityParams,IWithdrawCfiAvailabilityResult>(withdrawCfiAvailabilityIR);
+
+
+/** 'GetAllCfiAvailability' parameters type */
+export type IGetAllCfiAvailabilityParams = void;
+
+/** 'GetAllCfiAvailability' return type */
+export interface IGetAllCfiAvailabilityResult {
+  id: number;
+  owner_signer_address: string;
+  aircraft_ident: string;
+  hourly_rate: string;
+  notes: string;
+  status: string;
+  accepted_signer_address: string | null;
+  created_at: Date;
+  updated_at: Date;
+  block_height: number;
+}
+
+/** 'GetAllCfiAvailability' query type */
+export interface IGetAllCfiAvailabilityQuery {
+  params: IGetAllCfiAvailabilityParams;
+  result: IGetAllCfiAvailabilityResult;
+}
+
+const getAllCfiAvailabilityIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT * FROM cfi_availability ORDER BY id DESC LIMIT 100"};
+
+export const getAllCfiAvailability = new PreparedQuery<IGetAllCfiAvailabilityParams,IGetAllCfiAvailabilityResult>(getAllCfiAvailabilityIR);

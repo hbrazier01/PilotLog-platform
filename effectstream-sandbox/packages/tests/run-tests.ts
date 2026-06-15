@@ -132,6 +132,10 @@ async function test() {
     const { midnightIdentityTest } = await import("./stm/midnight-identity.test.ts");
     await midnightIdentityTest(db);
 
+    console.log("\n--- Phase E: Opportunities Foundation (AIR-351) ---\n");
+    const { opportunitiesTest } = await import("./stm/opportunities.test.ts");
+    await opportunitiesTest(db);
+
     printSummary();
   } catch (e) {
     printSummary();

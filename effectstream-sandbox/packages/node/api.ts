@@ -1,5 +1,10 @@
 import { runPreparedQuery } from "@effectstream/db";
-import { getAllProfiles, getProfileBySigner } from "@pilotlog-sandbox/database";
+import {
+  getAllProfiles,
+  getProfileBySigner,
+  getAllStudentRequests,
+  getAllCfiAvailability,
+} from "@pilotlog-sandbox/database";
 import type { Pool } from "pg";
 import type { StartConfigApiRouter } from "@effectstream/runtime";
 import type { FastifyInstance } from "fastify";
@@ -26,5 +31,21 @@ export const apiRouter: StartConfigApiRouter = async function (
       return reply.status(404).send({ error: "Profile not found" });
     }
     reply.send({ profile: result[0] });
+  });
+
+  server.get("/api/student-requests", async (_request, reply) => {
+    const result = await runPreparedQuery(
+      getAllStudentRequests.run(undefined, dbConn),
+      "/api/student-requests",
+    );
+    reply.send({ studentRequests: result });
+  });
+
+  server.get("/api/cfi-availability", async (_request, reply) => {
+    const result = await runPreparedQuery(
+      getAllCfiAvailability.run(undefined, dbConn),
+      "/api/cfi-availability",
+    );
+    reply.send({ cfiAvailability: result });
   });
 };

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PilotLog — Profile Foundation</title>
+    <title>PilotLog — Opportunities</title>
     <link rel="stylesheet" href="style.css" />
 </head>
 
@@ -20,7 +20,7 @@
         <h2>Create Profile</h2>
         <input id="display-name" type="text" placeholder="Display Name" />
         <input id="pilot-phase" type="text" placeholder="Pilot Phase (e.g. student, ppl, cfi)" />
-        <input id="notes" type="text" placeholder="Notes (optional)" />
+        <input id="notes-profile" type="text" placeholder="Notes (optional)" />
         <button onclick="createProfile()">Create Profile</button>
         <div id="tx-result"></div>
 
@@ -28,15 +28,55 @@
         <h2>Profiles (GET /api/profiles)</h2>
         <button onclick="fetchProfiles()">Refresh</button>
         <div id="profiles-display"></div>
+
+        <hr />
+        <h2>Student Requests</h2>
+
+        <h3>Create Request</h3>
+        <input id="sr-aircraft" type="text" placeholder="Aircraft Ident (e.g. N12345)" />
+        <input id="sr-notes" type="text" placeholder="Notes (optional)" />
+        <button onclick="createStudentRequest()">Create Student Request</button>
+        <div id="sr-create-result"></div>
+
+        <h3>Accept / Withdraw Request</h3>
+        <input id="sr-id" type="number" placeholder="Request ID" />
+        <button onclick="acceptStudentRequest()">Accept</button>
+        <button onclick="withdrawStudentRequest()">Withdraw</button>
+        <div id="sr-action-result"></div>
+
+        <h3>Open Requests (GET /api/student-requests)</h3>
+        <button onclick="fetchStudentRequests()">Refresh</button>
+        <div id="sr-display"></div>
+
+        <hr />
+        <h2>CFI Availability</h2>
+
+        <h3>Post Availability</h3>
+        <input id="cfi-aircraft" type="text" placeholder="Aircraft Ident (e.g. N54321)" />
+        <input id="cfi-rate" type="number" placeholder="Hourly Rate ($)" />
+        <input id="cfi-notes" type="text" placeholder="Notes (optional)" />
+        <button onclick="createCfiAvailability()">Post CFI Availability</button>
+        <div id="cfi-create-result"></div>
+
+        <h3>Accept / Withdraw Availability</h3>
+        <input id="cfi-id" type="number" placeholder="Availability ID" />
+        <button onclick="acceptCfiAvailability()">Accept</button>
+        <button onclick="withdrawCfiAvailability()">Withdraw</button>
+        <div id="cfi-action-result"></div>
+
+        <h3>Open Availability (GET /api/cfi-availability)</h3>
+        <button onclick="fetchCfiAvailability()">Refresh</button>
+        <div id="cfi-display"></div>
     </div>
 </body>
 
 <script type="module" src="./min.js"></script>
 
 <script>
+    const API = "http://localhost:9999";
+
     async function fetchProfiles() {
-        const response = await fetch("http://localhost:9999/api/profiles");
-        const data = await response.json();
+        const data = await fetch(`${API}/api/profiles`).then(r => r.json());
         const container = document.getElementById("profiles-display");
         if (!data.profiles || data.profiles.length === 0) {
             container.innerHTML = "<p>No profiles yet.</p>";
@@ -51,6 +91,40 @@
         `).join("");
     }
 
+    async function fetchStudentRequests() {
+        const data = await fetch(`${API}/api/student-requests`).then(r => r.json());
+        const container = document.getElementById("sr-display");
+        if (!data.studentRequests || data.studentRequests.length === 0) {
+            container.innerHTML = "<p>No student requests.</p>";
+            return;
+        }
+        container.innerHTML = data.studentRequests.map(r => `
+            <div style="border:1px solid #ccc; padding:8px; margin:8px 0; border-radius:4px;">
+                <strong>ID ${r.id}</strong> — ${r.aircraft_ident} — <em>${r.status}</em><br/>
+                <small>Owner: ${r.owner_signer_address}</small><br/>
+                ${r.accepted_signer_address ? `<small>Accepted by: ${r.accepted_signer_address}</small><br/>` : ""}
+                ${r.notes ? r.notes : ""}
+            </div>
+        `).join("");
+    }
+
+    async function fetchCfiAvailability() {
+        const data = await fetch(`${API}/api/cfi-availability`).then(r => r.json());
+        const container = document.getElementById("cfi-display");
+        if (!data.cfiAvailability || data.cfiAvailability.length === 0) {
+            container.innerHTML = "<p>No CFI availability listings.</p>";
+            return;
+        }
+        container.innerHTML = data.cfiAvailability.map(r => `
+            <div style="border:1px solid #ccc; padding:8px; margin:8px 0; border-radius:4px;">
+                <strong>ID ${r.id}</strong> — ${r.aircraft_ident} — $${r.hourly_rate}/hr — <em>${r.status}</em><br/>
+                <small>Owner: ${r.owner_signer_address}</small><br/>
+                ${r.accepted_signer_address ? `<small>Accepted by: ${r.accepted_signer_address}</small><br/>` : ""}
+                ${r.notes ? r.notes : ""}
+            </div>
+        `).join("");
+    }
+
     async function walletConnect() {
         const wallet = await effectstream.login();
         document.getElementById("address").innerText = "Midnight addr: " + wallet.address;
@@ -61,7 +135,7 @@
     async function createProfile() {
         const displayName = document.getElementById("display-name").value || "Anonymous";
         const pilotPhase = document.getElementById("pilot-phase").value || "student";
-        const notes = document.getElementById("notes").value || "";
+        const notes = document.getElementById("notes-profile").value || "";
         document.getElementById("tx-result").innerText = "Submitting...";
         try {
             const result = await effectstream.sendCreateProfile(displayName, pilotPhase, notes);
@@ -71,6 +145,89 @@
         } catch (err) {
             document.getElementById("tx-result").innerText = "Error: " + err.message;
             console.error(err);
+        }
+    }
+
+    async function createStudentRequest() {
+        const aircraftIdent = document.getElementById("sr-aircraft").value;
+        const notes = document.getElementById("sr-notes").value || "";
+        document.getElementById("sr-create-result").innerText = "Submitting...";
+        try {
+            const result = await effectstream.sendAction(["create_student_request", aircraftIdent, notes]);
+            console.log("[tx-debug] create_student_request:", result);
+            document.getElementById("sr-create-result").innerText = "Request created! " + JSON.stringify(result, null, 2);
+            await fetchStudentRequests();
+        } catch (err) {
+            document.getElementById("sr-create-result").innerText = "Error: " + err.message;
+            console.error(err);
+        }
+    }
+
+    async function acceptStudentRequest() {
+        const id = parseInt(document.getElementById("sr-id").value, 10);
+        document.getElementById("sr-action-result").innerText = "Submitting...";
+        try {
+            const result = await effectstream.sendAction(["accept_student_request", id]);
+            console.log("[tx-debug] accept_student_request:", result);
+            document.getElementById("sr-action-result").innerText = "Accepted! " + JSON.stringify(result, null, 2);
+            await fetchStudentRequests();
+        } catch (err) {
+            document.getElementById("sr-action-result").innerText = "Error: " + err.message;
+        }
+    }
+
+    async function withdrawStudentRequest() {
+        const id = parseInt(document.getElementById("sr-id").value, 10);
+        document.getElementById("sr-action-result").innerText = "Submitting...";
+        try {
+            const result = await effectstream.sendAction(["withdraw_student_request", id]);
+            console.log("[tx-debug] withdraw_student_request:", result);
+            document.getElementById("sr-action-result").innerText = "Withdrawn! " + JSON.stringify(result, null, 2);
+            await fetchStudentRequests();
+        } catch (err) {
+            document.getElementById("sr-action-result").innerText = "Error: " + err.message;
+        }
+    }
+
+    async function createCfiAvailability() {
+        const aircraftIdent = document.getElementById("cfi-aircraft").value;
+        const hourlyRate = parseFloat(document.getElementById("cfi-rate").value);
+        const notes = document.getElementById("cfi-notes").value || "";
+        document.getElementById("cfi-create-result").innerText = "Submitting...";
+        try {
+            const result = await effectstream.sendAction(["create_cfi_availability", aircraftIdent, hourlyRate, notes]);
+            console.log("[tx-debug] create_cfi_availability:", result);
+            document.getElementById("cfi-create-result").innerText = "Availability posted! " + JSON.stringify(result, null, 2);
+            await fetchCfiAvailability();
+        } catch (err) {
+            document.getElementById("cfi-create-result").innerText = "Error: " + err.message;
+            console.error(err);
+        }
+    }
+
+    async function acceptCfiAvailability() {
+        const id = parseInt(document.getElementById("cfi-id").value, 10);
+        document.getElementById("cfi-action-result").innerText = "Submitting...";
+        try {
+            const result = await effectstream.sendAction(["accept_cfi_availability", id]);
+            console.log("[tx-debug] accept_cfi_availability:", result);
+            document.getElementById("cfi-action-result").innerText = "Accepted! " + JSON.stringify(result, null, 2);
+            await fetchCfiAvailability();
+        } catch (err) {
+            document.getElementById("cfi-action-result").innerText = "Error: " + err.message;
+        }
+    }
+
+    async function withdrawCfiAvailability() {
+        const id = parseInt(document.getElementById("cfi-id").value, 10);
+        document.getElementById("cfi-action-result").innerText = "Submitting...";
+        try {
+            const result = await effectstream.sendAction(["withdraw_cfi_availability", id]);
+            console.log("[tx-debug] withdraw_cfi_availability:", result);
+            document.getElementById("cfi-action-result").innerText = "Withdrawn! " + JSON.stringify(result, null, 2);
+            await fetchCfiAvailability();
+        } catch (err) {
+            document.getElementById("cfi-action-result").innerText = "Error: " + err.message;
         }
     }
 </script>

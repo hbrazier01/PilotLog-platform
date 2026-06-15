@@ -83,8 +83,22 @@ async function sendCreateProfile(displayName, pilotPhase, notes) {
   };
 }
 
+async function sendAction(actionArray) {
+  if (!wallet) throw new Error("Call effectstream.login() first");
+  const config = await loadConfig();
+  const result = await sendTransaction(wallet, actionArray, config, "wait-receipt");
+  console.log("[tx-debug]", actionArray[0], "result:", result);
+  return {
+    success: true,
+    type: result.type,
+    address: mnAddr,
+    ...result,
+  };
+}
+
 window.effectstream = {
   login,
   sendCreateProfile,
+  sendAction,
   getWallet: () => ({ address: mnAddr }),
 };
