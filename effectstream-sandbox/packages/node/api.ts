@@ -11,6 +11,10 @@ import {
   getFlightById,
   getFlightsBySigner,
   getFlightsByAircraft,
+  getAllTrainingRecords,
+  getTrainingRecordById,
+  getTrainingRecordsBySigner,
+  getTrainingRecordsByFlight,
 } from "@pilotlog-sandbox/database";
 import type { Pool } from "pg";
 import type { StartConfigApiRouter } from "@effectstream/runtime";
@@ -130,5 +134,49 @@ export const apiRouter: StartConfigApiRouter = async function (
       "/api/aircraft/:id/flights",
     );
     reply.send({ flights: result });
+  });
+
+  server.get("/api/training-records", async (_request, reply) => {
+    const result = await runPreparedQuery(
+      getAllTrainingRecords.run(undefined, dbConn),
+      "/api/training-records",
+    );
+    reply.send({ trainingRecords: result });
+  });
+
+  server.get<{ Params: { id: string } }>("/api/training-records/:id", async (request, reply) => {
+    const id = parseInt(request.params.id, 10);
+    if (isNaN(id)) {
+      return reply.status(400).send({ error: "Invalid training record id" });
+    }
+    const result = await runPreparedQuery(
+      getTrainingRecordById.run({ id }, dbConn),
+      "/api/training-records/:id",
+    );
+    if (result.length === 0) {
+      return reply.status(404).send({ error: "Training record not found" });
+    }
+    reply.send({ trainingRecord: result[0] });
+  });
+
+  server.get<{ Params: { signer: string } }>("/api/my-training-records/:signer", async (request, reply) => {
+    const { signer } = request.params;
+    const result = await runPreparedQuery(
+      getTrainingRecordsBySigner.run({ student_signer_address: signer.toLowerCase() }, dbConn),
+      "/api/my-training-records/:signer",
+    );
+    reply.send({ trainingRecords: result });
+  });
+
+  server.get<{ Params: { id: string } }>("/api/flights/:id/training", async (request, reply) => {
+    const id = parseInt(request.params.id, 10);
+    if (isNaN(id)) {
+      return reply.status(400).send({ error: "Invalid flight id" });
+    }
+    const result = await runPreparedQuery(
+      getTrainingRecordsByFlight.run({ flight_log_id: id }, dbConn),
+      "/api/flights/:id/training",
+    );
+    reply.send({ trainingRecords: result });
   });
 };

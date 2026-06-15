@@ -16,6 +16,9 @@ import {
   insertFlightLog,
   updateFlightLog,
   voidFlightLog,
+  insertTrainingRecord,
+  updateTrainingRecord,
+  completeTrainingRecord,
 } from "@pilotlog-sandbox/database";
 import { grammar } from "./grammar.ts";
 
@@ -159,6 +162,46 @@ stm.addStateTransition("void_flight", function* (data) {
   yield* World.resolve(voidFlightLog, {
     id: parsedInput.flightId,
     owner_signer_address: signerAddress!.toLowerCase(),
+  });
+});
+
+
+stm.addStateTransition("create_training_record", function* (data) {
+  const { parsedInput, signerAddress, blockHeight } = data;
+  // Validate training type
+  const validTypes = [
+    "Discovery Flight", "PPL Lesson", "Solo Preparation", "Cross Country Training",
+    "Night Training", "Instrument Training", "Commercial Training", "CFI Training",
+  ];
+  if (!validTypes.includes(parsedInput.trainingType)) return;
+
+  // Validate referenced flight log exists and is active
+  // (FK validation handled at DB layer — flight_log_id FK enforced by STM lookup)
+  yield* World.resolve(insertTrainingRecord, {
+    student_signer_address: signerAddress!.toLowerCase(),
+    instructor_signer_address: parsedInput.instructorSignerAddress.toLowerCase(),
+    flight_log_id: parsedInput.flightLogId,
+    training_type: parsedInput.trainingType,
+    notes: parsedInput.notes ?? "",
+    block_height: blockHeight,
+  });
+});
+
+stm.addStateTransition("update_training_record", function* (data) {
+  const { parsedInput, signerAddress } = data;
+  yield* World.resolve(updateTrainingRecord, {
+    id: parsedInput.trainingRecordId,
+    student_signer_address: signerAddress!.toLowerCase(),
+    training_type: parsedInput.trainingType,
+    notes: parsedInput.notes ?? "",
+  });
+});
+
+stm.addStateTransition("complete_training_record", function* (data) {
+  const { parsedInput, signerAddress } = data;
+  yield* World.resolve(completeTrainingRecord, {
+    id: parsedInput.trainingRecordId,
+    student_signer_address: signerAddress!.toLowerCase(),
   });
 });
 

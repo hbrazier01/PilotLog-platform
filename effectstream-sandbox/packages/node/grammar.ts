@@ -73,4 +73,19 @@ export const grammar = {
   void_flight: [
     ["flightId", Type.Integer({ minimum: 1 })],
   ],
+
+  create_training_record: [
+    ["instructorSignerAddress", Type.String({ maxLength: 64 })],
+    ["flightLogId", Type.Integer({ minimum: 1 })],
+    ["trainingType", Type.String({ maxLength: 64 })],
+    ["notes", Type.String({ maxLength: 1024 })],
+  ],
+  update_training_record: [
+    ["trainingRecordId", Type.Integer({ minimum: 1 })],
+    ["trainingType", Type.String({ maxLength: 64 })],
+    ["notes", Type.String({ maxLength: 1024 })],
+  ],
+  complete_training_record: [
+    ["trainingRecordId", Type.Integer({ minimum: 1 })],
+  ],
 } as const satisfies GrammarDefinition;

@@ -713,3 +713,243 @@ const getFlightsByAircraftIR: any = {"usedParamSet":{"aircraft_id":true},"params
  * ```
  */
 export const getFlightsByAircraft = new PreparedQuery<IGetFlightsByAircraftParams,IGetFlightsByAircraftResult>(getFlightsByAircraftIR);
+
+
+/** 'InsertTrainingRecord' parameters type */
+export interface IInsertTrainingRecordParams {
+  student_signer_address: string;
+  instructor_signer_address: string;
+  flight_log_id: number;
+  training_type: string;
+  notes: string;
+  block_height: number;
+}
+
+/** 'InsertTrainingRecord' return type */
+export interface IInsertTrainingRecordResult {
+  /** This query does not return data. It performs an insert operation. */
+  void: void;
+}
+
+/** 'InsertTrainingRecord' query type */
+export interface IInsertTrainingRecordQuery {
+  params: IInsertTrainingRecordParams;
+  result: IInsertTrainingRecordResult;
+}
+
+const insertTrainingRecordIR: any = {"usedParamSet":{"student_signer_address":true,"instructor_signer_address":true,"flight_log_id":true,"training_type":true,"notes":true,"block_height":true},"params":[{"name":"student_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":107,"b":129}]},{"name":"instructor_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":131,"b":155}]},{"name":"flight_log_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":157,"b":170}]},{"name":"training_type","required":true,"transform":{"type":"scalar"},"locs":[{"a":185,"b":198}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":200,"b":206}]},{"name":"block_height","required":true,"transform":{"type":"scalar"},"locs":[{"a":208,"b":220}]}],"statement":"INSERT INTO training_record (student_signer_address, instructor_signer_address, flight_log_id, aircraft_id, training_type, notes, block_height)\nSELECT :student_signer_address!, :instructor_signer_address!, :flight_log_id!, fl.aircraft_id, :training_type!, :notes!, :block_height!\nFROM flight_log fl WHERE fl.id = :flight_log_id! AND fl.status = 'active'"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO training_record (student_signer_address, instructor_signer_address, flight_log_id, aircraft_id, training_type, notes, block_height)
+ * VALUES (:student_signer_address!, :instructor_signer_address!, :flight_log_id!, :aircraft_id!, :training_type!, :notes!, :block_height!)
+ * ```
+ */
+export const insertTrainingRecord = new PreparedQuery<IInsertTrainingRecordParams,IInsertTrainingRecordResult>(insertTrainingRecordIR);
+
+
+/** 'UpdateTrainingRecord' parameters type */
+export interface IUpdateTrainingRecordParams {
+  id: number;
+  student_signer_address: string;
+  training_type: string;
+  notes: string;
+}
+
+/** 'UpdateTrainingRecord' return type */
+export interface IUpdateTrainingRecordResult {
+  void: void;
+}
+
+/** 'UpdateTrainingRecord' query type */
+export interface IUpdateTrainingRecordQuery {
+  params: IUpdateTrainingRecordParams;
+  result: IUpdateTrainingRecordResult;
+}
+
+const updateTrainingRecordIR: any = {"usedParamSet":{"training_type":true,"notes":true,"id":true,"student_signer_address":true},"params":[{"name":"training_type","required":true,"transform":{"type":"scalar"},"locs":[{"a":36,"b":49}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":58,"b":64}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":97,"b":100}]},{"name":"student_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":126,"b":148}]}],"statement":"UPDATE training_record SET training_type = :training_type!, notes = :notes!, updated_at = NOW() WHERE id = :id! AND student_signer_address = :student_signer_address! AND status = 'active'"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE training_record SET training_type = :training_type!, notes = :notes!, updated_at = NOW() WHERE id = :id! AND student_signer_address = :student_signer_address! AND status = 'active'
+ * ```
+ */
+export const updateTrainingRecord = new PreparedQuery<IUpdateTrainingRecordParams,IUpdateTrainingRecordResult>(updateTrainingRecordIR);
+
+
+/** 'CompleteTrainingRecord' parameters type */
+export interface ICompleteTrainingRecordParams {
+  id: number;
+  student_signer_address: string;
+}
+
+/** 'CompleteTrainingRecord' return type */
+export interface ICompleteTrainingRecordResult {
+  void: void;
+}
+
+/** 'CompleteTrainingRecord' query type */
+export interface ICompleteTrainingRecordQuery {
+  params: ICompleteTrainingRecordParams;
+  result: ICompleteTrainingRecordResult;
+}
+
+const completeTrainingRecordIR: any = {"usedParamSet":{"id":true,"student_signer_address":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":64,"b":67}]},{"name":"student_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":93,"b":115}]}],"statement":"UPDATE training_record SET status = 'completed', updated_at = NOW() WHERE id = :id! AND student_signer_address = :student_signer_address! AND status = 'active'"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE training_record SET status = 'completed', updated_at = NOW() WHERE id = :id! AND student_signer_address = :student_signer_address! AND status = 'active'
+ * ```
+ */
+export const completeTrainingRecord = new PreparedQuery<ICompleteTrainingRecordParams,ICompleteTrainingRecordResult>(completeTrainingRecordIR);
+
+
+/** 'GetAllTrainingRecords' parameters type */
+export interface IGetAllTrainingRecordsParams {
+  /** This query does not have any parameters. */
+}
+
+/** 'GetAllTrainingRecords' return type */
+export interface IGetAllTrainingRecordsResult {
+  id: number;
+  student_signer_address: string;
+  instructor_signer_address: string;
+  flight_log_id: number;
+  aircraft_id: number;
+  training_type: string;
+  status: string;
+  notes: string;
+  created_at: Date;
+  updated_at: Date;
+  block_height: number;
+}
+
+/** 'GetAllTrainingRecords' query type */
+export interface IGetAllTrainingRecordsQuery {
+  params: IGetAllTrainingRecordsParams;
+  result: IGetAllTrainingRecordsResult;
+}
+
+const getAllTrainingRecordsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT * FROM training_record WHERE status = 'active' ORDER BY id DESC LIMIT 100"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT * FROM training_record WHERE status = 'active' ORDER BY id DESC LIMIT 100
+ * ```
+ */
+export const getAllTrainingRecords = new PreparedQuery<IGetAllTrainingRecordsParams,IGetAllTrainingRecordsResult>(getAllTrainingRecordsIR);
+
+
+/** 'GetTrainingRecordById' parameters type */
+export interface IGetTrainingRecordByIdParams {
+  id: number;
+}
+
+/** 'GetTrainingRecordById' return type */
+export interface IGetTrainingRecordByIdResult {
+  id: number;
+  student_signer_address: string;
+  instructor_signer_address: string;
+  flight_log_id: number;
+  aircraft_id: number;
+  training_type: string;
+  status: string;
+  notes: string;
+  created_at: Date;
+  updated_at: Date;
+  block_height: number;
+}
+
+/** 'GetTrainingRecordById' query type */
+export interface IGetTrainingRecordByIdQuery {
+  params: IGetTrainingRecordByIdParams;
+  result: IGetTrainingRecordByIdResult;
+}
+
+const getTrainingRecordByIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":33,"b":36}]}],"statement":"SELECT * FROM training_record WHERE id = :id!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT * FROM training_record WHERE id = :id!
+ * ```
+ */
+export const getTrainingRecordById = new PreparedQuery<IGetTrainingRecordByIdParams,IGetTrainingRecordByIdResult>(getTrainingRecordByIdIR);
+
+
+/** 'GetTrainingRecordsBySigner' parameters type */
+export interface IGetTrainingRecordsBySignerParams {
+  student_signer_address: string;
+}
+
+/** 'GetTrainingRecordsBySigner' return type */
+export interface IGetTrainingRecordsBySignerResult {
+  id: number;
+  student_signer_address: string;
+  instructor_signer_address: string;
+  flight_log_id: number;
+  aircraft_id: number;
+  training_type: string;
+  status: string;
+  notes: string;
+  created_at: Date;
+  updated_at: Date;
+  block_height: number;
+}
+
+/** 'GetTrainingRecordsBySigner' query type */
+export interface IGetTrainingRecordsBySignerQuery {
+  params: IGetTrainingRecordsBySignerParams;
+  result: IGetTrainingRecordsBySignerResult;
+}
+
+const getTrainingRecordsBySignerIR: any = {"usedParamSet":{"student_signer_address":true},"params":[{"name":"student_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":55,"b":77}]}],"statement":"SELECT * FROM training_record WHERE student_signer_address = :student_signer_address! ORDER BY id DESC LIMIT 100"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT * FROM training_record WHERE student_signer_address = :student_signer_address! ORDER BY id DESC LIMIT 100
+ * ```
+ */
+export const getTrainingRecordsBySigner = new PreparedQuery<IGetTrainingRecordsBySignerParams,IGetTrainingRecordsBySignerResult>(getTrainingRecordsBySignerIR);
+
+
+/** 'GetTrainingRecordsByFlight' parameters type */
+export interface IGetTrainingRecordsByFlightParams {
+  flight_log_id: number;
+}
+
+/** 'GetTrainingRecordsByFlight' return type */
+export interface IGetTrainingRecordsByFlightResult {
+  id: number;
+  student_signer_address: string;
+  instructor_signer_address: string;
+  flight_log_id: number;
+  aircraft_id: number;
+  training_type: string;
+  status: string;
+  notes: string;
+  created_at: Date;
+  updated_at: Date;
+  block_height: number;
+}
+
+/** 'GetTrainingRecordsByFlight' query type */
+export interface IGetTrainingRecordsByFlightQuery {
+  params: IGetTrainingRecordsByFlightParams;
+  result: IGetTrainingRecordsByFlightResult;
+}
+
+const getTrainingRecordsByFlightIR: any = {"usedParamSet":{"flight_log_id":true},"params":[{"name":"flight_log_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":46,"b":59}]}],"statement":"SELECT * FROM training_record WHERE flight_log_id = :flight_log_id! ORDER BY id DESC LIMIT 100"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT * FROM training_record WHERE flight_log_id = :flight_log_id! ORDER BY id DESC LIMIT 100
+ * ```
+ */
+export const getTrainingRecordsByFlight = new PreparedQuery<IGetTrainingRecordsByFlightParams,IGetTrainingRecordsByFlightResult>(getTrainingRecordsByFlightIR);

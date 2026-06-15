@@ -144,6 +144,10 @@ async function test() {
     const { flightsTest } = await import("./stm/flights.test.ts");
     await flightsTest(db);
 
+    console.log("\n--- Phase H: Training Record Foundation (AIR-354) ---\n");
+    const { trainingTest } = await import("./stm/training.test.ts");
+    await trainingTest(db);
+
     printSummary();
   } catch (e) {
     printSummary();

@@ -81,3 +81,28 @@ SELECT * FROM flight_log WHERE owner_signer_address = :owner_signer_address! ORD
 
 /* @name getFlightsByAircraft */
 SELECT * FROM flight_log WHERE aircraft_id = :aircraft_id! AND status = 'active' ORDER BY id DESC LIMIT 100;
+
+-- ── Training Records (AIR-354) ─────────────────────────────────────────────────
+
+/* @name insertTrainingRecord */
+INSERT INTO training_record (student_signer_address, instructor_signer_address, flight_log_id, aircraft_id, training_type, notes, block_height)
+SELECT :student_signer_address!, :instructor_signer_address!, :flight_log_id!, fl.aircraft_id, :training_type!, :notes!, :block_height!
+FROM flight_log fl WHERE fl.id = :flight_log_id! AND fl.status = 'active';
+
+/* @name updateTrainingRecord */
+UPDATE training_record SET training_type = :training_type!, notes = :notes!, updated_at = NOW() WHERE id = :id! AND student_signer_address = :student_signer_address! AND status = 'active';
+
+/* @name completeTrainingRecord */
+UPDATE training_record SET status = 'completed', updated_at = NOW() WHERE id = :id! AND student_signer_address = :student_signer_address! AND status = 'active';
+
+/* @name getAllTrainingRecords */
+SELECT * FROM training_record WHERE status = 'active' ORDER BY id DESC LIMIT 100;
+
+/* @name getTrainingRecordById */
+SELECT * FROM training_record WHERE id = :id!;
+
+/* @name getTrainingRecordsBySigner */
+SELECT * FROM training_record WHERE student_signer_address = :student_signer_address! ORDER BY id DESC LIMIT 100;
+
+/* @name getTrainingRecordsByFlight */
+SELECT * FROM training_record WHERE flight_log_id = :flight_log_id! ORDER BY id DESC LIMIT 100;

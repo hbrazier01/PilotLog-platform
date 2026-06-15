@@ -449,6 +449,72 @@
             document.getElementById("fl-void-result").innerText = "Error: " + err.message;
         }
     }
+
+    async function createTrainingRecord() {
+        const instructor = document.getElementById("tr-instructor").value;
+        const flightId = parseInt(document.getElementById("tr-flight-id").value, 10);
+        const trainingType = document.getElementById("tr-type").value;
+        const notes = document.getElementById("tr-notes").value || "";
+        document.getElementById("tr-create-result").innerText = "Submitting...";
+        try {
+            const result = await effectstream.sendAction([
+                "create_training_record", instructor, flightId, trainingType, notes
+            ]);
+            console.log("[tx-debug] create_training_record:", result);
+            document.getElementById("tr-create-result").innerText = "Training record created! " + JSON.stringify(result, null, 2);
+            await fetchTrainingRecords();
+        } catch (err) {
+            document.getElementById("tr-create-result").innerText = "Error: " + err.message;
+            console.error(err);
+        }
+    }
+
+    async function updateTrainingRecordAction() {
+        const id = parseInt(document.getElementById("tr-update-id").value, 10);
+        const trainingType = document.getElementById("tr-update-type").value;
+        const notes = document.getElementById("tr-update-notes").value || "";
+        document.getElementById("tr-update-result").innerText = "Submitting...";
+        try {
+            const result = await effectstream.sendAction(["update_training_record", id, trainingType, notes]);
+            console.log("[tx-debug] update_training_record:", result);
+            document.getElementById("tr-update-result").innerText = "Updated! " + JSON.stringify(result, null, 2);
+            await fetchTrainingRecords();
+        } catch (err) {
+            document.getElementById("tr-update-result").innerText = "Error: " + err.message;
+        }
+    }
+
+    async function completeTrainingRecordAction() {
+        const id = parseInt(document.getElementById("tr-complete-id").value, 10);
+        document.getElementById("tr-complete-result").innerText = "Submitting...";
+        try {
+            const result = await effectstream.sendAction(["complete_training_record", id]);
+            console.log("[tx-debug] complete_training_record:", result);
+            document.getElementById("tr-complete-result").innerText = "Completed! " + JSON.stringify(result, null, 2);
+            await fetchTrainingRecords();
+        } catch (err) {
+            document.getElementById("tr-complete-result").innerText = "Error: " + err.message;
+        }
+    }
+
+    async function fetchTrainingRecords() {
+        const data = await fetch(`${API}/api/training-records`).then(r => r.json());
+        const container = document.getElementById("tr-display");
+        if (!data.trainingRecords || data.trainingRecords.length === 0) {
+            container.innerHTML = "<p>No active training records.</p>";
+            return;
+        }
+        container.innerHTML = data.trainingRecords.map(r => `
+            <div style="border:1px solid #ccc; padding:8px; margin:8px 0; border-radius:4px;">
+                <strong>ID ${r.id}</strong> — ${r.training_type} — <em>${r.status}</em><br/>
+                Student: ${r.student_signer_address}<br/>
+                Instructor: ${r.instructor_signer_address}<br/>
+                Flight Log ID: ${r.flight_log_id} | Aircraft ID: ${r.aircraft_id}<br/>
+                <small>${new Date(r.created_at).toLocaleString()}</small>
+                ${r.notes ? `<br/><em>${r.notes}</em>` : ""}
+            </div>
+        `).join("");
+    }
 </script>
 
 </html>

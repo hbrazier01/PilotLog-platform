@@ -12,3 +12,7 @@ export {
   getAllFlights, getFlightById, getFlightsBySigner, getFlightsByAircraft,
 } from "./sql/queries.queries.ts";
 export { migrationTable } from "./migration-order.ts";
+export {
+  insertTrainingRecord, updateTrainingRecord, completeTrainingRecord,
+  getAllTrainingRecords, getTrainingRecordById, getTrainingRecordsBySigner, getTrainingRecordsByFlight,
+} from "./sql/queries.queries.ts";
