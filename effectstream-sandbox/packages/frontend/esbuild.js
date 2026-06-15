@@ -26,10 +26,15 @@ await build({
   outfile: "dist/min.js",
   sourcemap: true,
   format: "esm",
+  loader: {
+    ".wasm": "file",
+  },
   // @effectstream/wallets declares Cardano wallet helpers as optional peer deps.
   // Midnight deps (@midnight-ntwrk/*) are required for WalletMode.Midnight.
   external: [
     "@lucid-evolution/*",
+    "@effectstream/midnight-contracts",
+    "@effectstream/midnight-contracts/*",
   ],
   alias: {
     "@effectstream/wallets": `${walletsPkg}/src/mod.ts`,

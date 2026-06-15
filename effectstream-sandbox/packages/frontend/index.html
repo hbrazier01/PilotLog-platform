@@ -4,663 +4,1048 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PilotLog — Opportunities</title>
+    <title>PilotLog</title>
     <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
-    <div class="container">
-        <h1>PilotLog</h1>
+    <header class="app-header">
+        <div class="header-inner">
+            <div class="brand">
+                <span class="brand-icon">&#9992;</span>
+                <span class="brand-name">PilotLog</span>
+            </div>
+            <div class="wallet-status">
+                <div id="address" class="wallet-address">Not connected</div>
+                <div id="signer-info" class="signer-info"></div>
+                <button id="login" class="btn btn-outline" onclick="walletConnect()">Connect 1AM Wallet</button>
+            </div>
+        </div>
+    </header>
 
-        <h2>Wallet</h2>
-        <div id="address">Not connected</div>
-        <div id="signer-info" style="font-size:0.85em; color:#666;"></div>
-        <button id="login" onclick="walletConnect()">Connect 1AM Wallet</button>
+    <main class="app-main">
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="profile">Profile</button>
+            <button class="tab-btn" data-tab="aircraft">Aircraft</button>
+            <button class="tab-btn" data-tab="flights">Flight Log</button>
+            <button class="tab-btn" data-tab="training">Training</button>
+            <button class="tab-btn" data-tab="endorsements">Endorsements</button>
+            <button class="tab-btn" data-tab="marketplace">Marketplace</button>
+        </nav>
 
-        <h2>Create Profile</h2>
-        <input id="display-name" type="text" placeholder="Display Name" />
-        <input id="pilot-phase" type="text" placeholder="Pilot Phase (e.g. student, ppl, cfi)" />
-        <input id="notes-profile" type="text" placeholder="Notes (optional)" />
-        <button onclick="createProfile()">Create Profile</button>
-        <div id="tx-result"></div>
+        <!-- Profile Tab -->
+        <section class="tab-pane active" id="tab-profile">
+            <div class="section-header">
+                <h2>Pilot Profile</h2>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-header">Create Profile</div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Display Name</label>
+                            <input id="display-name" type="text" placeholder="e.g. Jane Smith" />
+                        </div>
+                        <div class="form-group">
+                            <label>Pilot Phase</label>
+                            <input id="pilot-phase" type="text" placeholder="e.g. student, ppl, cfi" />
+                        </div>
+                        <div class="form-group">
+                            <label>Notes (optional)</label>
+                            <input id="notes-profile" type="text" placeholder="Optional notes" />
+                        </div>
+                        <button class="btn btn-primary" onclick="createProfile()">Create Profile</button>
+                        <div id="tx-result" class="result-box"></div>
+                    </div>
+                </div>
+                <div class="card card-wide">
+                    <div class="card-header">
+                        Profiles
+                        <button class="btn btn-sm btn-secondary" onclick="fetchProfiles()">Refresh</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="profiles-display" class="data-list"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        <hr />
-        <h2>Profiles (GET /api/profiles)</h2>
-        <button onclick="fetchProfiles()">Refresh</button>
-        <div id="profiles-display"></div>
+        <!-- Aircraft Tab -->
+        <section class="tab-pane" id="tab-aircraft">
+            <div class="section-header">
+                <h2>Aircraft Management</h2>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-header">Register Aircraft</div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Tail Number</label>
+                            <input id="ac-tail" type="text" placeholder="e.g. N123AB" />
+                        </div>
+                        <div class="form-group">
+                            <label>Manufacturer</label>
+                            <input id="ac-manufacturer" type="text" placeholder="e.g. Cirrus" />
+                        </div>
+                        <div class="form-group">
+                            <label>Model</label>
+                            <input id="ac-model" type="text" placeholder="e.g. SR20 G6" />
+                        </div>
+                        <div class="form-group">
+                            <label>Year</label>
+                            <input id="ac-year" type="number" placeholder="e.g. 2022" />
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <input id="ac-category" type="text" placeholder="e.g. Single Engine Land" />
+                        </div>
+                        <button class="btn btn-primary" onclick="createAircraft()">Register Aircraft</button>
+                        <div id="ac-create-result" class="result-box"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">Update Aircraft</div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Aircraft ID</label>
+                            <input id="ac-update-id" type="number" placeholder="Aircraft ID" />
+                        </div>
+                        <div class="form-group">
+                            <label>Manufacturer</label>
+                            <input id="ac-update-manufacturer" type="text" placeholder="Manufacturer" />
+                        </div>
+                        <div class="form-group">
+                            <label>Model</label>
+                            <input id="ac-update-model" type="text" placeholder="Model" />
+                        </div>
+                        <div class="form-group">
+                            <label>Year</label>
+                            <input id="ac-update-year" type="number" placeholder="Year" />
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <input id="ac-update-category" type="text" placeholder="Category" />
+                        </div>
+                        <button class="btn btn-secondary" onclick="updateAircraftAction()">Update Aircraft</button>
+                        <div id="ac-update-result" class="result-box"></div>
+                        <hr class="divider" />
+                        <div class="form-group">
+                            <label>Aircraft ID to Deactivate</label>
+                            <input id="ac-deactivate-id" type="number" placeholder="Aircraft ID" />
+                        </div>
+                        <button class="btn btn-danger" onclick="deactivateAircraftAction()">Deactivate Aircraft</button>
+                        <div id="ac-deactivate-result" class="result-box"></div>
+                    </div>
+                </div>
+                <div class="card card-wide">
+                    <div class="card-header">
+                        Active Aircraft
+                        <button class="btn btn-sm btn-secondary" onclick="fetchAircraft()">Refresh</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="ac-display" class="data-list"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        <hr />
-        <h2>Student Requests</h2>
+        <!-- Flight Log Tab -->
+        <section class="tab-pane" id="tab-flights">
+            <div class="section-header">
+                <h2>Flight Log</h2>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-header">Log a Flight</div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Aircraft ID</label>
+                                <input id="fl-aircraft-id" type="number" placeholder="Aircraft ID" />
+                            </div>
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input id="fl-date" type="date" />
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Departure</label>
+                                <input id="fl-departure" type="text" placeholder="KSFO" />
+                            </div>
+                            <div class="form-group">
+                                <label>Arrival</label>
+                                <input id="fl-arrival" type="text" placeholder="KLAX" />
+                            </div>
+                        </div>
+                        <div class="time-grid">
+                            <div class="form-group">
+                                <label>Total (hrs)</label>
+                                <input id="fl-total" type="number" step="0.1" placeholder="0.0" />
+                            </div>
+                            <div class="form-group">
+                                <label>PIC (hrs)</label>
+                                <input id="fl-pic" type="number" step="0.1" placeholder="0.0" />
+                            </div>
+                            <div class="form-group">
+                                <label>Dual (hrs)</label>
+                                <input id="fl-dual" type="number" step="0.1" placeholder="0.0" />
+                            </div>
+                            <div class="form-group">
+                                <label>Night (hrs)</label>
+                                <input id="fl-night" type="number" step="0.1" placeholder="0.0" />
+                            </div>
+                            <div class="form-group">
+                                <label>Instrument (hrs)</label>
+                                <input id="fl-instrument" type="number" step="0.1" placeholder="0.0" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Notes (optional)</label>
+                            <input id="fl-notes" type="text" placeholder="Optional notes" />
+                        </div>
+                        <button class="btn btn-primary" onclick="logFlight()">Log Flight</button>
+                        <div id="fl-create-result" class="result-box"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">Update / Void Flight</div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Flight ID</label>
+                                <input id="fl-update-id" type="number" placeholder="Flight ID" />
+                            </div>
+                            <div class="form-group">
+                                <label>Aircraft ID</label>
+                                <input id="fl-update-aircraft-id" type="number" placeholder="Aircraft ID" />
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input id="fl-update-date" type="date" />
+                            </div>
+                            <div class="form-group">
+                                <label>Departure</label>
+                                <input id="fl-update-departure" type="text" placeholder="KSFO" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Arrival</label>
+                            <input id="fl-update-arrival" type="text" placeholder="KLAX" />
+                        </div>
+                        <div class="time-grid">
+                            <div class="form-group">
+                                <label>Total (hrs)</label>
+                                <input id="fl-update-total" type="number" step="0.1" placeholder="0.0" />
+                            </div>
+                            <div class="form-group">
+                                <label>PIC (hrs)</label>
+                                <input id="fl-update-pic" type="number" step="0.1" placeholder="0.0" />
+                            </div>
+                            <div class="form-group">
+                                <label>Dual (hrs)</label>
+                                <input id="fl-update-dual" type="number" step="0.1" placeholder="0.0" />
+                            </div>
+                            <div class="form-group">
+                                <label>Night (hrs)</label>
+                                <input id="fl-update-night" type="number" step="0.1" placeholder="0.0" />
+                            </div>
+                            <div class="form-group">
+                                <label>Instrument (hrs)</label>
+                                <input id="fl-update-instrument" type="number" step="0.1" placeholder="0.0" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Notes (optional)</label>
+                            <input id="fl-update-notes" type="text" placeholder="Optional notes" />
+                        </div>
+                        <button class="btn btn-secondary" onclick="updateFlightAction()">Update Flight</button>
+                        <div id="fl-update-result" class="result-box"></div>
+                        <hr class="divider" />
+                        <div class="form-group">
+                            <label>Flight ID to Void</label>
+                            <input id="fl-void-id" type="number" placeholder="Flight ID" />
+                        </div>
+                        <button class="btn btn-danger" onclick="voidFlightAction()">Void Flight</button>
+                        <div id="fl-void-result" class="result-box"></div>
+                    </div>
+                </div>
+                <div class="card card-wide">
+                    <div class="card-header">
+                        Flight Log
+                        <button class="btn btn-sm btn-secondary" onclick="fetchFlights()">Refresh</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="fl-display" class="data-list"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        <h3>Create Request</h3>
-        <input id="sr-aircraft" type="text" placeholder="Aircraft Ident (e.g. N12345)" />
-        <input id="sr-notes" type="text" placeholder="Notes (optional)" />
-        <button onclick="createStudentRequest()">Create Student Request</button>
-        <div id="sr-create-result"></div>
+        <!-- Training Tab -->
+        <section class="tab-pane" id="tab-training">
+            <div class="section-header">
+                <h2>Training Records</h2>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-header">Create Training Record</div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Instructor Signer Address</label>
+                            <input id="tr-instructor" type="text" placeholder="0x..." />
+                        </div>
+                        <div class="form-group">
+                            <label>Flight Log ID</label>
+                            <input id="tr-flight-id" type="number" placeholder="Flight Log ID" />
+                        </div>
+                        <div class="form-group">
+                            <label>Training Type</label>
+                            <select id="tr-type">
+                                <option value="">Select Training Type</option>
+                                <option value="Discovery Flight">Discovery Flight</option>
+                                <option value="PPL Lesson">PPL Lesson</option>
+                                <option value="Solo Preparation">Solo Preparation</option>
+                                <option value="Cross Country Training">Cross Country Training</option>
+                                <option value="Night Training">Night Training</option>
+                                <option value="Instrument Training">Instrument Training</option>
+                                <option value="Commercial Training">Commercial Training</option>
+                                <option value="CFI Training">CFI Training</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Notes (optional)</label>
+                            <input id="tr-notes" type="text" placeholder="Optional notes" />
+                        </div>
+                        <button class="btn btn-primary" onclick="createTrainingRecord()">Create Training Record</button>
+                        <div id="tr-create-result" class="result-box"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">Update / Complete Record</div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Training Record ID</label>
+                            <input id="tr-update-id" type="number" placeholder="Record ID" />
+                        </div>
+                        <div class="form-group">
+                            <label>Training Type</label>
+                            <select id="tr-update-type">
+                                <option value="">Select Training Type</option>
+                                <option value="Discovery Flight">Discovery Flight</option>
+                                <option value="PPL Lesson">PPL Lesson</option>
+                                <option value="Solo Preparation">Solo Preparation</option>
+                                <option value="Cross Country Training">Cross Country Training</option>
+                                <option value="Night Training">Night Training</option>
+                                <option value="Instrument Training">Instrument Training</option>
+                                <option value="Commercial Training">Commercial Training</option>
+                                <option value="CFI Training">CFI Training</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Notes (optional)</label>
+                            <input id="tr-update-notes" type="text" placeholder="Optional notes" />
+                        </div>
+                        <button class="btn btn-secondary" onclick="updateTrainingRecordAction()">Update Record</button>
+                        <div id="tr-update-result" class="result-box"></div>
+                        <hr class="divider" />
+                        <div class="form-group">
+                            <label>Record ID to Complete</label>
+                            <input id="tr-complete-id" type="number" placeholder="Record ID" />
+                        </div>
+                        <button class="btn btn-success" onclick="completeTrainingRecordAction()">Complete Record</button>
+                        <div id="tr-complete-result" class="result-box"></div>
+                    </div>
+                </div>
+                <div class="card card-wide">
+                    <div class="card-header">
+                        Training Records
+                        <button class="btn btn-sm btn-secondary" onclick="fetchTrainingRecords()">Refresh</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="tr-display" class="data-list"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        <h3>Accept / Withdraw Request</h3>
-        <input id="sr-id" type="number" placeholder="Request ID" />
-        <button onclick="acceptStudentRequest()">Accept</button>
-        <button onclick="withdrawStudentRequest()">Withdraw</button>
-        <div id="sr-action-result"></div>
+        <!-- Endorsements Tab -->
+        <section class="tab-pane" id="tab-endorsements">
+            <div class="section-header">
+                <h2>Endorsements</h2>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-header">Request Endorsement</div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Training Record ID</label>
+                            <input id="en-training-id" type="number" placeholder="Training Record ID" />
+                        </div>
+                        <div class="form-group">
+                            <label>Endorsement Type</label>
+                            <select id="en-type">
+                                <option value="">Select Endorsement Type</option>
+                                <option value="Discovery Flight Complete">Discovery Flight Complete</option>
+                                <option value="Pre-Solo Review">Pre-Solo Review</option>
+                                <option value="Solo Ready">Solo Ready</option>
+                                <option value="Cross Country Ready">Cross Country Ready</option>
+                                <option value="Night Training Complete">Night Training Complete</option>
+                                <option value="Instrument Training Complete">Instrument Training Complete</option>
+                                <option value="Commercial Training Complete">Commercial Training Complete</option>
+                                <option value="CFI Training Complete">CFI Training Complete</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Notes (optional)</label>
+                            <input id="en-notes" type="text" placeholder="Optional notes" />
+                        </div>
+                        <button class="btn btn-primary" onclick="createEndorsement()">Request Endorsement</button>
+                        <div id="en-create-result" class="result-box"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">Approve / Reject</div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Endorsement ID</label>
+                            <input id="en-approve-id" type="number" placeholder="Endorsement ID" />
+                        </div>
+                        <button class="btn btn-success" onclick="approveEndorsementAction()">Approve</button>
+                        <div id="en-approve-result" class="result-box"></div>
+                        <hr class="divider" />
+                        <div class="form-group">
+                            <label>Endorsement ID to Reject</label>
+                            <input id="en-reject-id" type="number" placeholder="Endorsement ID" />
+                        </div>
+                        <div class="form-group">
+                            <label>Rejection Notes</label>
+                            <input id="en-reject-notes" type="text" placeholder="Reason for rejection" />
+                        </div>
+                        <button class="btn btn-danger" onclick="rejectEndorsementAction()">Reject</button>
+                        <div id="en-reject-result" class="result-box"></div>
+                    </div>
+                </div>
+                <div class="card card-wide">
+                    <div class="card-header">
+                        Endorsements
+                        <button class="btn btn-sm btn-secondary" onclick="fetchEndorsements()">Refresh</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="en-display" class="data-list"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        <h3>Open Requests (GET /api/student-requests)</h3>
-        <button onclick="fetchStudentRequests()">Refresh</button>
-        <div id="sr-display"></div>
+        <!-- Marketplace Tab -->
+        <section class="tab-pane" id="tab-marketplace">
+            <div class="section-header">
+                <h2>Marketplace</h2>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-header">Post Student Request</div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Aircraft Ident</label>
+                            <input id="sr-aircraft" type="text" placeholder="e.g. N12345" />
+                        </div>
+                        <div class="form-group">
+                            <label>Notes (optional)</label>
+                            <input id="sr-notes" type="text" placeholder="Optional notes" />
+                        </div>
+                        <button class="btn btn-primary" onclick="createStudentRequest()">Create Student Request</button>
+                        <div id="sr-create-result" class="result-box"></div>
+                        <hr class="divider" />
+                        <div class="form-group">
+                            <label>Request ID</label>
+                            <input id="sr-id" type="number" placeholder="Request ID" />
+                        </div>
+                        <div class="btn-row">
+                            <button class="btn btn-success" onclick="acceptStudentRequest()">Accept</button>
+                            <button class="btn btn-danger" onclick="withdrawStudentRequest()">Withdraw</button>
+                        </div>
+                        <div id="sr-action-result" class="result-box"></div>
+                    </div>
+                </div>
+                <div class="card card-wide">
+                    <div class="card-header">
+                        Open Student Requests
+                        <button class="btn btn-sm btn-secondary" onclick="fetchStudentRequests()">Refresh</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="sr-display" class="data-list"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">Post CFI Availability</div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Aircraft Ident</label>
+                            <input id="cfi-aircraft" type="text" placeholder="e.g. N54321" />
+                        </div>
+                        <div class="form-group">
+                            <label>Hourly Rate ($)</label>
+                            <input id="cfi-rate" type="number" placeholder="e.g. 75" />
+                        </div>
+                        <div class="form-group">
+                            <label>Notes (optional)</label>
+                            <input id="cfi-notes" type="text" placeholder="Optional notes" />
+                        </div>
+                        <button class="btn btn-primary" onclick="createCfiAvailability()">Post Availability</button>
+                        <div id="cfi-create-result" class="result-box"></div>
+                        <hr class="divider" />
+                        <div class="form-group">
+                            <label>Availability ID</label>
+                            <input id="cfi-id" type="number" placeholder="Availability ID" />
+                        </div>
+                        <div class="btn-row">
+                            <button class="btn btn-success" onclick="acceptCfiAvailability()">Accept</button>
+                            <button class="btn btn-danger" onclick="withdrawCfiAvailability()">Withdraw</button>
+                        </div>
+                        <div id="cfi-action-result" class="result-box"></div>
+                    </div>
+                </div>
+                <div class="card card-wide">
+                    <div class="card-header">
+                        Open CFI Availability
+                        <button class="btn btn-sm btn-secondary" onclick="fetchCfiAvailability()">Refresh</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="cfi-display" class="data-list"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
 
-        <hr />
-        <h2>CFI Availability</h2>
+    <script type="module" src="./min.js"></script>
 
-        <h3>Post Availability</h3>
-        <input id="cfi-aircraft" type="text" placeholder="Aircraft Ident (e.g. N54321)" />
-        <input id="cfi-rate" type="number" placeholder="Hourly Rate ($)" />
-        <input id="cfi-notes" type="text" placeholder="Notes (optional)" />
-        <button onclick="createCfiAvailability()">Post CFI Availability</button>
-        <div id="cfi-create-result"></div>
+    <script>
+        const API = "http://localhost:9999";
 
-        <h3>Accept / Withdraw Availability</h3>
-        <input id="cfi-id" type="number" placeholder="Availability ID" />
-        <button onclick="acceptCfiAvailability()">Accept</button>
-        <button onclick="withdrawCfiAvailability()">Withdraw</button>
-        <div id="cfi-action-result"></div>
+        // Tab navigation
+        document.querySelectorAll(".tab-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+                document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+                btn.classList.add("active");
+                document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+            });
+        });
 
-        <h3>Open Availability (GET /api/cfi-availability)</h3>
-        <button onclick="fetchCfiAvailability()">Refresh</button>
-        <div id="cfi-display"></div>
+        async function fetchProfiles() {
+            const data = await fetch(`${API}/api/profiles`).then(r => r.json());
+            const container = document.getElementById("profiles-display");
+            if (!data.profiles || data.profiles.length === 0) {
+                container.innerHTML = "<p class='empty-state'>No profiles yet.</p>";
+                return;
+            }
+            container.innerHTML = data.profiles.map(p => `
+                <div class="data-item">
+                    <div class="data-item-title">${p.display_name} <span class="badge">${p.pilot_phase}</span></div>
+                    <div class="data-item-meta">Signer: ${p.signer_address}</div>
+                    ${p.notes ? `<div class="data-item-notes">${p.notes}</div>` : ""}
+                </div>
+            `).join("");
+        }
 
-        <hr />
-        <h2>Aircraft Management</h2>
+        async function fetchStudentRequests() {
+            const data = await fetch(`${API}/api/student-requests`).then(r => r.json());
+            const container = document.getElementById("sr-display");
+            if (!data.studentRequests || data.studentRequests.length === 0) {
+                container.innerHTML = "<p class='empty-state'>No student requests.</p>";
+                return;
+            }
+            container.innerHTML = data.studentRequests.map(r => `
+                <div class="data-item">
+                    <div class="data-item-title">${r.aircraft_ident} <span class="badge badge-status">${r.status}</span></div>
+                    <div class="data-item-meta">ID: ${r.id} &middot; Owner: ${r.owner_signer_address}</div>
+                    ${r.accepted_signer_address ? `<div class="data-item-meta">Accepted by: ${r.accepted_signer_address}</div>` : ""}
+                    ${r.notes ? `<div class="data-item-notes">${r.notes}</div>` : ""}
+                </div>
+            `).join("");
+        }
 
-        <h3>Register Aircraft</h3>
-        <input id="ac-tail" type="text" placeholder="Tail Number (e.g. N123AB)" />
-        <input id="ac-manufacturer" type="text" placeholder="Manufacturer (e.g. Cirrus)" />
-        <input id="ac-model" type="text" placeholder="Model (e.g. SR20 G6)" />
-        <input id="ac-year" type="number" placeholder="Year (e.g. 2022)" />
-        <input id="ac-category" type="text" placeholder="Category (e.g. Single Engine Land)" />
-        <button onclick="createAircraft()">Register Aircraft</button>
-        <div id="ac-create-result"></div>
+        async function fetchCfiAvailability() {
+            const data = await fetch(`${API}/api/cfi-availability`).then(r => r.json());
+            const container = document.getElementById("cfi-display");
+            if (!data.cfiAvailability || data.cfiAvailability.length === 0) {
+                container.innerHTML = "<p class='empty-state'>No CFI availability listings.</p>";
+                return;
+            }
+            container.innerHTML = data.cfiAvailability.map(r => `
+                <div class="data-item">
+                    <div class="data-item-title">${r.aircraft_ident} &mdash; $${r.hourly_rate}/hr <span class="badge badge-status">${r.status}</span></div>
+                    <div class="data-item-meta">ID: ${r.id} &middot; Owner: ${r.owner_signer_address}</div>
+                    ${r.accepted_signer_address ? `<div class="data-item-meta">Accepted by: ${r.accepted_signer_address}</div>` : ""}
+                    ${r.notes ? `<div class="data-item-notes">${r.notes}</div>` : ""}
+                </div>
+            `).join("");
+        }
 
-        <h3>Update Aircraft</h3>
-        <input id="ac-update-id" type="number" placeholder="Aircraft ID" />
-        <input id="ac-update-manufacturer" type="text" placeholder="Manufacturer" />
-        <input id="ac-update-model" type="text" placeholder="Model" />
-        <input id="ac-update-year" type="number" placeholder="Year" />
-        <input id="ac-update-category" type="text" placeholder="Category" />
-        <button onclick="updateAircraftAction()">Update Aircraft</button>
-        <div id="ac-update-result"></div>
+        async function walletConnect() {
+            const wallet = await effectstream.login();
+            document.getElementById("address").innerText = wallet.address
+                ? "Connected: " + wallet.address.slice(0, 16) + "..."
+                : "Connected";
+            document.getElementById("address").classList.add("connected");
+            document.getElementById("signer-info").innerText =
+                wallet.signerAddress ? "EVM key: " + wallet.signerAddress : "";
+        }
 
-        <h3>Deactivate Aircraft</h3>
-        <input id="ac-deactivate-id" type="number" placeholder="Aircraft ID" />
-        <button onclick="deactivateAircraftAction()">Deactivate Aircraft</button>
-        <div id="ac-deactivate-result"></div>
+        async function createProfile() {
+            const displayName = document.getElementById("display-name").value || "Anonymous";
+            const pilotPhase = document.getElementById("pilot-phase").value || "student";
+            const notes = document.getElementById("notes-profile").value || "";
+            const result_el = document.getElementById("tx-result");
+            result_el.innerText = "Submitting...";
+            result_el.className = "result-box pending";
+            try {
+                const result = await effectstream.sendCreateProfile(displayName, pilotPhase, notes);
+                console.log("[tx-debug]", result);
+                result_el.innerText = "Profile created!";
+                result_el.className = "result-box success";
+                await fetchProfiles();
+            } catch (err) {
+                result_el.innerText = "Error: " + err.message;
+                result_el.className = "result-box error";
+                console.error(err);
+            }
+        }
 
-        <h3>Active Aircraft (GET /api/aircraft)</h3>
-        <button onclick="fetchAircraft()">Refresh</button>
-        <div id="ac-display"></div>
+        async function createStudentRequest() {
+            const aircraftIdent = document.getElementById("sr-aircraft").value;
+            const notes = document.getElementById("sr-notes").value || "";
+            const result_el = document.getElementById("sr-create-result");
+            result_el.innerText = "Submitting...";
+            result_el.className = "result-box pending";
+            try {
+                const result = await effectstream.sendAction(["create_student_request", aircraftIdent, notes]);
+                console.log("[tx-debug] create_student_request:", result);
+                result_el.innerText = "Request created!";
+                result_el.className = "result-box success";
+                await fetchStudentRequests();
+            } catch (err) {
+                result_el.innerText = "Error: " + err.message;
+                result_el.className = "result-box error";
+                console.error(err);
+            }
+        }
 
-        <hr />
-        <h2>Flight Log</h2>
+        async function acceptStudentRequest() {
+            const id = parseInt(document.getElementById("sr-id").value, 10);
+            const result_el = document.getElementById("sr-action-result");
+            result_el.innerText = "Submitting...";
+            result_el.className = "result-box pending";
+            try {
+                const result = await effectstream.sendAction(["accept_student_request", id]);
+                console.log("[tx-debug] accept_student_request:", result);
+                result_el.innerText = "Accepted!";
+                result_el.className = "result-box success";
+                await fetchStudentRequests();
+            } catch (err) {
+                result_el.innerText = "Error: " + err.message;
+                result_el.className = "result-box error";
+            }
+        }
 
-        <h3>Log a Flight</h3>
-        <input id="fl-aircraft-id" type="number" placeholder="Aircraft ID" />
-        <input id="fl-date" type="date" placeholder="Date" />
-        <input id="fl-departure" type="text" placeholder="Departure Airport (e.g. KSFO)" />
-        <input id="fl-arrival" type="text" placeholder="Arrival Airport (e.g. KLAX)" />
-        <input id="fl-total" type="number" step="0.1" placeholder="Total Time (hrs)" />
-        <input id="fl-pic" type="number" step="0.1" placeholder="PIC Time (hrs)" />
-        <input id="fl-dual" type="number" step="0.1" placeholder="Dual Received (hrs)" />
-        <input id="fl-night" type="number" step="0.1" placeholder="Night Time (hrs)" />
-        <input id="fl-instrument" type="number" step="0.1" placeholder="Instrument Time (hrs)" />
-        <input id="fl-notes" type="text" placeholder="Notes (optional)" />
-        <button onclick="logFlight()">Log Flight</button>
-        <div id="fl-create-result"></div>
+        async function withdrawStudentRequest() {
+            const id = parseInt(document.getElementById("sr-id").value, 10);
+            const result_el = document.getElementById("sr-action-result");
+            result_el.innerText = "Submitting...";
+            result_el.className = "result-box pending";
+            try {
+                const result = await effectstream.sendAction(["withdraw_student_request", id]);
+                console.log("[tx-debug] withdraw_student_request:", result);
+                result_el.innerText = "Withdrawn!";
+                result_el.className = "result-box success";
+                await fetchStudentRequests();
+            } catch (err) {
+                result_el.innerText = "Error: " + err.message;
+                result_el.className = "result-box error";
+            }
+        }
 
-        <h3>Update Flight</h3>
-        <input id="fl-update-id" type="number" placeholder="Flight ID" />
-        <input id="fl-update-aircraft-id" type="number" placeholder="Aircraft ID" />
-        <input id="fl-update-date" type="date" placeholder="Date" />
-        <input id="fl-update-departure" type="text" placeholder="Departure Airport" />
-        <input id="fl-update-arrival" type="text" placeholder="Arrival Airport" />
-        <input id="fl-update-total" type="number" step="0.1" placeholder="Total Time (hrs)" />
-        <input id="fl-update-pic" type="number" step="0.1" placeholder="PIC Time (hrs)" />
-        <input id="fl-update-dual" type="number" step="0.1" placeholder="Dual Received (hrs)" />
-        <input id="fl-update-night" type="number" step="0.1" placeholder="Night Time (hrs)" />
-        <input id="fl-update-instrument" type="number" step="0.1" placeholder="Instrument Time (hrs)" />
-        <input id="fl-update-notes" type="text" placeholder="Notes (optional)" />
-        <button onclick="updateFlightAction()">Update Flight</button>
-        <div id="fl-update-result"></div>
+        async function createCfiAvailability() {
+            const aircraftIdent = document.getElementById("cfi-aircraft").value;
+            const hourlyRate = parseFloat(document.getElementById("cfi-rate").value);
+            const notes = document.getElementById("cfi-notes").value || "";
+            const result_el = document.getElementById("cfi-create-result");
+            result_el.innerText = "Submitting...";
+            result_el.className = "result-box pending";
+            try {
+                const result = await effectstream.sendAction(["create_cfi_availability", aircraftIdent, hourlyRate, notes]);
+                console.log("[tx-debug] create_cfi_availability:", result);
+                result_el.innerText = "Availability posted!";
+                result_el.className = "result-box success";
+                await fetchCfiAvailability();
+            } catch (err) {
+                result_el.innerText = "Error: " + err.message;
+                result_el.className = "result-box error";
+                console.error(err);
+            }
+        }
 
-        <h3>Void Flight</h3>
-        <input id="fl-void-id" type="number" placeholder="Flight ID" />
-        <button onclick="voidFlightAction()">Void Flight</button>
-        <div id="fl-void-result"></div>
+        async function acceptCfiAvailability() {
+            const id = parseInt(document.getElementById("cfi-id").value, 10);
+            const result_el = document.getElementById("cfi-action-result");
+            result_el.innerText = "Submitting...";
+            result_el.className = "result-box pending";
+            try {
+                const result = await effectstream.sendAction(["accept_cfi_availability", id]);
+                console.log("[tx-debug] accept_cfi_availability:", result);
+                result_el.innerText = "Accepted!";
+                result_el.className = "result-box success";
+                await fetchCfiAvailability();
+            } catch (err) {
+                result_el.innerText = "Error: " + err.message;
+                result_el.className = "result-box error";
+            }
+        }
 
-        <h3>Flight Log (GET /api/flights)</h3>
-        <button onclick="fetchFlights()">Refresh</button>
-        <div id="fl-display"></div>
+        async function withdrawCfiAvailability() {
+            const id = parseInt(document.getElementById("cfi-id").value, 10);
+            const result_el = document.getElementById("cfi-action-result");
+            result_el.innerText = "Submitting...";
+            result_el.className = "result-box pending";
+            try {
+                const result = await effectstream.sendAction(["withdraw_cfi_availability", id]);
+                console.log("[tx-debug] withdraw_cfi_availability:", result);
+                result_el.innerText = "Withdrawn!";
+                result_el.className = "result-box success";
+                await fetchCfiAvailability();
+            } catch (err) {
+                result_el.innerText = "Error: " + err.message;
+                result_el.className = "result-box error";
+            }
+        }
 
-        <hr />
-        <h2>Training Records</h2>
+        async function fetchAircraft() {
+            const data = await fetch(`${API}/api/aircraft`).then(r => r.json());
+            const container = document.getElementById("ac-display");
+            if (!data.aircraft || data.aircraft.length === 0) {
+                container.innerHTML = "<p class='empty-state'>No aircraft registered.</p>";
+                return;
+            }
+            container.innerHTML = data.aircraft.map(a => `
+                <div class="data-item">
+                    <div class="data-item-title">${a.tail_number} &mdash; ${a.manufacturer} ${a.model} (${a.year}) <span class="badge">${a.aircraft_category}</span></div>
+                    <div class="data-item-meta">Owner: ${a.owner_signer_address} &middot; Status: ${a.status} &middot; ID: ${a.id}</div>
+                </div>
+            `).join("");
+        }
 
-        <h3>Create Training Record</h3>
-        <input id="tr-instructor" type="text" placeholder="Instructor Signer Address (0x...)" />
-        <input id="tr-flight-id" type="number" placeholder="Flight Log ID" />
-        <select id="tr-type">
-          <option value="">Select Training Type</option>
-          <option value="Discovery Flight">Discovery Flight</option>
-          <option value="PPL Lesson">PPL Lesson</option>
-          <option value="Solo Preparation">Solo Preparation</option>
-          <option value="Cross Country Training">Cross Country Training</option>
-          <option value="Night Training">Night Training</option>
-          <option value="Instrument Training">Instrument Training</option>
-          <option value="Commercial Training">Commercial Training</option>
-          <option value="CFI Training">CFI Training</option>
-        </select>
-        <input id="tr-notes" type="text" placeholder="Notes (optional)" />
-        <button onclick="createTrainingRecord()">Create Training Record</button>
-        <div id="tr-create-result"></div>
+        async function createAircraft() {
+            const tailNumber = document.getElementById("ac-tail").value;
+            const manufacturer = document.getElementById("ac-manufacturer").value;
+            const model = document.getElementById("ac-model").value;
+            const year = parseInt(document.getElementById("ac-year").value, 10);
+            const aircraftCategory = document.getElementById("ac-category").value;
+            const result_el = document.getElementById("ac-create-result");
+            result_el.innerText = "Submitting...";
+            result_el.className = "result-box pending";
+            try {
+                const result = await effectstream.sendAction(["create_aircraft", tailNumber, manufacturer, model, year, aircraftCategory]);
+                console.log("[tx-debug] create_aircraft:", result);
+                result_el.innerText = "Aircraft registered!";
+                result_el.className = "result-box success";
+                await fetchAircraft();
+            } catch (err) {
+                result_el.innerText = "Error: " + err.message;
+                result_el.className = "result-box error";
+                console.error(err);
+            }
+        }
 
-        <h3>Update Training Record</h3>
-        <input id="tr-update-id" type="number" placeholder="Training Record ID" />
-        <select id="tr-update-type">
-          <option value="">Select Training Type</option>
-          <option value="Discovery Flight">Discovery Flight</option>
-          <option value="PPL Lesson">PPL Lesson</option>
-          <option value="Solo Preparation">Solo Preparation</option>
-          <option value="Cross Country Training">Cross Country Training</option>
-          <option value="Night Training">Night Training</option>
-          <option value="Instrument Training">Instrument Training</option>
-          <option value="Commercial Training">Commercial Training</option>
-          <option value="CFI Training">CFI Training</option>
-        </select>
-        <input id="tr-update-notes" type="text" placeholder="Notes (optional)" />
-        <button onclick="updateTrainingRecordAction()">Update Training Record</button>
-        <div id="tr-update-result"></div>
+        async function updateAircraftAction() {
+            const id = parseInt(document.getElementById("ac-update-id").value, 10);
+            const manufacturer = document.getElementById("ac-update-manufacturer").value;
+            const model = document.getElementById("ac-update-model").value;
+            const year = parseInt(document.getElementById("ac-update-year").value, 10);
+            const aircraftCategory = document.getElementById("ac-update-category").value;
+            const result_el = document.getElementById("ac-update-result");
+            result_el.innerText = "Submitting...";
+            result_el.className = "result-box pending";
+            try {
+                const result = await effectstream.sendAction(["update_aircraft", id, manufacturer, model, year, aircraftCategory]);
+                console.log("[tx-debug] update_aircraft:", result);
+                result_el.innerText = "Updated!";
+                result_el.className = "result-box success";
+                await fetchAircraft();
+            } catch (err) {
+                result_el.innerText = "Error: " + err.message;
+                result_el.className = "result-box error";
+            }
+        }
 
-        <h3>Complete Training Record</h3>
-        <input id="tr-complete-id" type="number" placeholder="Training Record ID" />
-        <button onclick="completeTrainingRecordAction()">Complete Training Record</button>
-        <div id="tr-complete-result"></div>
+        async function deactivateAircraftAction() {
+            const id = parseInt(document.getElementById("ac-deactivate-id").value, 10);
+            const result_el = document.getElementById("ac-deactivate-result");
+            result_el.innerText = "Submitting...";
+            result_el.className = "result-box pending";
+            try {
+                const result = await effectstream.sendAction(["deactivate_aircraft", id]);
+                console.log("[tx-debug] deactivate_aircraft:", result);
+                result_el.innerText = "Deactivated!";
+                result_el.className = "result-box success";
+                await fetchAircraft();
+            } catch (err) {
+                result_el.innerText = "Error: " + err.message;
+                result_el.className = "result-box error";
+            }
+        }
 
-        <h3>Training Records (GET /api/training-records)</h3>
-        <button onclick="fetchTrainingRecords()">Refresh</button>
-        <div id="tr-display"></div>
+        async function fetchFlights() {
+            const data = await fetch(`${API}/api/flights`).then(r => r.json());
+            const container = document.getElementById("fl-display");
+            if (!data.flights || data.flights.length === 0) {
+                container.innerHTML = "<p class='empty-state'>No flights logged.</p>";
+                return;
+            }
+            container.innerHTML = data.flights.map(f => `
+                <div class="data-item">
+                    <div class="data-item-title">${new Date(f.flight_date).toLocaleDateString()} &mdash; ${f.departure_airport} &rarr; ${f.arrival_airport} <span class="badge badge-status">${f.status}</span></div>
+                    <div class="data-item-meta">Aircraft ID: ${f.aircraft_id} &middot; Total: ${f.total_time}h &middot; PIC: ${f.pic_time}h &middot; Dual: ${f.dual_received_time}h &middot; Night: ${f.night_time}h &middot; Inst: ${f.instrument_time}h</div>
+                    <div class="data-item-meta">ID: ${f.id} &middot; Owner: ${f.owner_signer_address}</div>
+                    ${f.notes ? `<div class="data-item-notes">${f.notes}</div>` : ""}
+                </div>
+            `).join("");
+        }
 
-        <hr />
-        <h2>Endorsements</h2>
+        async function logFlight() {
+            const aircraftId = parseInt(document.getElementById("fl-aircraft-id").value, 10);
+            const date = document.getElementById("fl-date").value;
+            const departure = document.getElementById("fl-departure").value;
+            const arrival = document.getElementById("fl-arrival").value;
+            const totalTime = parseFloat(document.getElementById("fl-total").value) || 0;
+            const picTime = parseFloat(document.getElementById("fl-pic").value) || 0;
+            const dualTime = parseFloat(document.getElementById("fl-dual").value) || 0;
+            const nightTime = parseFloat(document.getElementById("fl-night").value) || 0;
+            const instrumentTime = parseFloat(document.getElementById("fl-instrument").value) || 0;
+            const notes = document.getElementById("fl-notes").value || "";
+            const result_el = document.getElementById("fl-create-result");
+            result_el.innerText = "Submitting...";
+            result_el.className = "result-box pending";
+            try {
+                const result = await effectstream.sendAction([
+                    "log_flight", aircraftId, date, departure, arrival,
+                    totalTime, picTime, dualTime, nightTime, instrumentTime, notes
+                ]);
+                console.log("[tx-debug] log_flight:", result);
+                result_el.innerText = "Flight logged!";
+                result_el.className = "result-box success";
+                await fetchFlights();
+            } catch (err) {
+                result_el.innerText = "Error: " + err.message;
+                result_el.className = "result-box error";
+                console.error(err);
+            }
+        }
 
-        <h3>Request Endorsement</h3>
-        <input id="en-training-id" type="number" placeholder="Training Record ID" />
-        <select id="en-type">
-          <option value="">Select Endorsement Type</option>
-          <option value="Discovery Flight Complete">Discovery Flight Complete</option>
-          <option value="Pre-Solo Review">Pre-Solo Review</option>
-          <option value="Solo Ready">Solo Ready</option>
-          <option value="Cross Country Ready">Cross Country Ready</option>
-          <option value="Night Training Complete">Night Training Complete</option>
-          <option value="Instrument Training Complete">Instrument Training Complete</option>
-          <option value="Commercial Training Complete">Commercial Training Complete</option>
-          <option value="CFI Training Complete">CFI Training Complete</option>
-        </select>
-        <input id="en-notes" type="text" placeholder="Notes (optional)" />
-        <button onclick="createEndorsement()">Request Endorsement</button>
-        <div id="en-create-result"></div>
+        async function updateFlightAction() {
+            const flightId = parseInt(document.getElementById("fl-update-id").value, 10);
+            const aircraftId = parseInt(document.getElementById("fl-update-aircraft-id").value, 10);
+            const date = document.getElementById("fl-update-date").value;
+            const departure = document.getElementById("fl-update-departure").value;
+            const arrival = document.getElementById("fl-update-arrival").value;
+            const totalTime = parseFloat(document.getElementById("fl-update-total").value) || 0;
+            const picTime = parseFloat(document.getElementById("fl-update-pic").value) || 0;
+            const dualTime = parseFloat(document.getElementById("fl-update-dual").value) || 0;
+            const nightTime = parseFloat(document.getElementById("fl-update-night").value) || 0;
+            const instrumentTime = parseFloat(document.getElementById("fl-update-instrument").value) || 0;
+            const notes = document.getElementById("fl-update-notes").value || "";
+            const result_el = document.getElementById("fl-update-result");
+            result_el.innerText = "Submitting...";
+            result_el.className = "result-box pending";
+            try {
+                const result = await effectstream.sendAction([
+                    "update_flight", flightId, aircraftId, date, departure, arrival,
+                    totalTime, picTime, dualTime, nightTime, instrumentTime, notes
+                ]);
+                console.log("[tx-debug] update_flight:", result);
+                result_el.innerText = "Updated!";
+                result_el.className = "result-box success";
+                await fetchFlights();
+            } catch (err) {
+                result_el.innerText = "Error: " + err.message;
+                result_el.className = "result-box error";
+            }
+        }
 
-        <h3>Approve Endorsement</h3>
-        <input id="en-approve-id" type="number" placeholder="Endorsement ID" />
-        <button onclick="approveEndorsementAction()">Approve</button>
-        <div id="en-approve-result"></div>
+        async function voidFlightAction() {
+            const id = parseInt(document.getElementById("fl-void-id").value, 10);
+            const result_el = document.getElementById("fl-void-result");
+            result_el.innerText = "Submitting...";
+            result_el.className = "result-box pending";
+            try {
+                const result = await effectstream.sendAction(["void_flight", id]);
+                console.log("[tx-debug] void_flight:", result);
+                result_el.innerText = "Voided!";
+                result_el.className = "result-box success";
+                await fetchFlights();
+            } catch (err) {
+                result_el.innerText = "Error: " + err.message;
+                result_el.className = "result-box error";
+            }
+        }
 
-        <h3>Reject Endorsement</h3>
-        <input id="en-reject-id" type="number" placeholder="Endorsement ID" />
-        <input id="en-reject-notes" type="text" placeholder="Rejection notes" />
-        <button onclick="rejectEndorsementAction()">Reject</button>
-        <div id="en-reject-result"></div>
+        async function createTrainingRecord() {
+            const instructor = document.getElementById("tr-instructor").value;
+            const flightId = parseInt(document.getElementById("tr-flight-id").value, 10);
+            const trainingType = document.getElementById("tr-type").value;
+            const notes = document.getElementById("tr-notes").value || "";
+            const result_el = document.getElementById("tr-create-result");
+            result_el.innerText = "Submitting...";
+            result_el.className = "result-box pending";
+            try {
+                const result = await effectstream.sendAction([
+                    "create_training_record", instructor, flightId, trainingType, notes
+                ]);
+                console.log("[tx-debug] create_training_record:", result);
+                result_el.innerText = "Training record created!";
+                result_el.className = "result-box success";
+                await fetchTrainingRecords();
+            } catch (err) {
+                result_el.innerText = "Error: " + err.message;
+                result_el.className = "result-box error";
+                console.error(err);
+            }
+        }
 
-        <h3>Endorsements (GET /api/endorsements)</h3>
-        <button onclick="fetchEndorsements()">Refresh</button>
-        <div id="en-display"></div>
-    </div>
+        async function updateTrainingRecordAction() {
+            const id = parseInt(document.getElementById("tr-update-id").value, 10);
+            const trainingType = document.getElementById("tr-update-type").value;
+            const notes = document.getElementById("tr-update-notes").value || "";
+            const result_el = document.getElementById("tr-update-result");
+            result_el.innerText = "Submitting...";
+            result_el.className = "result-box pending";
+            try {
+                const result = await effectstream.sendAction(["update_training_record", id, trainingType, notes]);
+                console.log("[tx-debug] update_training_record:", result);
+                result_el.innerText = "Updated!";
+                result_el.className = "result-box success";
+                await fetchTrainingRecords();
+            } catch (err) {
+                result_el.innerText = "Error: " + err.message;
+                result_el.className = "result-box error";
+            }
+        }
+
+        async function completeTrainingRecordAction() {
+            const id = parseInt(document.getElementById("tr-complete-id").value, 10);
+            const result_el = document.getElementById("tr-complete-result");
+            result_el.innerText = "Submitting...";
+            result_el.className = "result-box pending";
+            try {
+                const result = await effectstream.sendAction(["complete_training_record", id]);
+                console.log("[tx-debug] complete_training_record:", result);
+                result_el.innerText = "Completed!";
+                result_el.className = "result-box success";
+                await fetchTrainingRecords();
+            } catch (err) {
+                result_el.innerText = "Error: " + err.message;
+                result_el.className = "result-box error";
+            }
+        }
+
+        async function fetchTrainingRecords() {
+            const data = await fetch(`${API}/api/training-records`).then(r => r.json());
+            const container = document.getElementById("tr-display");
+            if (!data.trainingRecords || data.trainingRecords.length === 0) {
+                container.innerHTML = "<p class='empty-state'>No active training records.</p>";
+                return;
+            }
+            container.innerHTML = data.trainingRecords.map(r => `
+                <div class="data-item">
+                    <div class="data-item-title">${r.training_type} <span class="badge badge-status">${r.status}</span></div>
+                    <div class="data-item-meta">ID: ${r.id} &middot; Student: ${r.student_signer_address}</div>
+                    <div class="data-item-meta">Instructor: ${r.instructor_signer_address} &middot; Flight ID: ${r.flight_log_id} &middot; Aircraft ID: ${r.aircraft_id}</div>
+                    <div class="data-item-meta">${new Date(r.created_at).toLocaleString()}</div>
+                    ${r.notes ? `<div class="data-item-notes">${r.notes}</div>` : ""}
+                </div>
+            `).join("");
+        }
+
+        async function createEndorsement() {
+            const trainingId = parseInt(document.getElementById("en-training-id").value, 10);
+            const endorsementType = document.getElementById("en-type").value;
+            const notes = document.getElementById("en-notes").value || "";
+            const result_el = document.getElementById("en-create-result");
+            result_el.innerText = "Submitting...";
+            result_el.className = "result-box pending";
+            try {
+                const result = await effectstream.sendAction([
+                    "create_endorsement", trainingId, endorsementType, notes
+                ]);
+                console.log("[tx-debug] create_endorsement:", result);
+                result_el.innerText = "Endorsement requested!";
+                result_el.className = "result-box success";
+                await fetchEndorsements();
+            } catch (err) {
+                result_el.innerText = "Error: " + err.message;
+                result_el.className = "result-box error";
+            }
+        }
+
+        async function approveEndorsementAction() {
+            const id = parseInt(document.getElementById("en-approve-id").value, 10);
+            const result_el = document.getElementById("en-approve-result");
+            result_el.innerText = "Submitting...";
+            result_el.className = "result-box pending";
+            try {
+                const result = await effectstream.sendAction(["approve_endorsement", id]);
+                console.log("[tx-debug] approve_endorsement:", result);
+                result_el.innerText = "Approved!";
+                result_el.className = "result-box success";
+                await fetchEndorsements();
+            } catch (err) {
+                result_el.innerText = "Error: " + err.message;
+                result_el.className = "result-box error";
+            }
+        }
+
+        async function rejectEndorsementAction() {
+            const id = parseInt(document.getElementById("en-reject-id").value, 10);
+            const notes = document.getElementById("en-reject-notes").value || "";
+            const result_el = document.getElementById("en-reject-result");
+            result_el.innerText = "Submitting...";
+            result_el.className = "result-box pending";
+            try {
+                const result = await effectstream.sendAction(["reject_endorsement", id, notes]);
+                console.log("[tx-debug] reject_endorsement:", result);
+                result_el.innerText = "Rejected!";
+                result_el.className = "result-box success";
+                await fetchEndorsements();
+            } catch (err) {
+                result_el.innerText = "Error: " + err.message;
+                result_el.className = "result-box error";
+            }
+        }
+
+        async function fetchEndorsements() {
+            const data = await fetch(`${API}/api/endorsements`).then(r => r.json());
+            const container = document.getElementById("en-display");
+            if (!data.endorsements || data.endorsements.length === 0) {
+                container.innerHTML = "<p class='empty-state'>No endorsements.</p>";
+                return;
+            }
+            container.innerHTML = data.endorsements.map(e => `
+                <div class="data-item">
+                    <div class="data-item-title">${e.endorsement_type} <span class="badge badge-status">${e.status}</span></div>
+                    <div class="data-item-meta">ID: ${e.id} &middot; Student: ${e.student_signer_address}</div>
+                    <div class="data-item-meta">Instructor: ${e.instructor_signer_address} &middot; Training ID: ${e.training_record_id}</div>
+                    ${e.approved_by_signer_address ? `<div class="data-item-meta">Approved by: ${e.approved_by_signer_address}</div>` : ""}
+                    <div class="data-item-meta">${new Date(e.created_at).toLocaleString()}</div>
+                    ${e.notes ? `<div class="data-item-notes">${e.notes}</div>` : ""}
+                </div>
+            `).join("");
+        }
+    </script>
+
 </body>
-
-<script type="module" src="./min.js"></script>
-
-<script>
-    const API = "http://localhost:9999";
-
-    async function fetchProfiles() {
-        const data = await fetch(`${API}/api/profiles`).then(r => r.json());
-        const container = document.getElementById("profiles-display");
-        if (!data.profiles || data.profiles.length === 0) {
-            container.innerHTML = "<p>No profiles yet.</p>";
-            return;
-        }
-        container.innerHTML = data.profiles.map(p => `
-            <div style="border:1px solid #ccc; padding:8px; margin:8px 0; border-radius:4px;">
-                <strong>${p.display_name}</strong> — ${p.pilot_phase}<br/>
-                <small>Signer: ${p.signer_address}</small><br/>
-                ${p.notes ? `<em>${p.notes}</em>` : ""}
-            </div>
-        `).join("");
-    }
-
-    async function fetchStudentRequests() {
-        const data = await fetch(`${API}/api/student-requests`).then(r => r.json());
-        const container = document.getElementById("sr-display");
-        if (!data.studentRequests || data.studentRequests.length === 0) {
-            container.innerHTML = "<p>No student requests.</p>";
-            return;
-        }
-        container.innerHTML = data.studentRequests.map(r => `
-            <div style="border:1px solid #ccc; padding:8px; margin:8px 0; border-radius:4px;">
-                <strong>ID ${r.id}</strong> — ${r.aircraft_ident} — <em>${r.status}</em><br/>
-                <small>Owner: ${r.owner_signer_address}</small><br/>
-                ${r.accepted_signer_address ? `<small>Accepted by: ${r.accepted_signer_address}</small><br/>` : ""}
-                ${r.notes ? r.notes : ""}
-            </div>
-        `).join("");
-    }
-
-    async function fetchCfiAvailability() {
-        const data = await fetch(`${API}/api/cfi-availability`).then(r => r.json());
-        const container = document.getElementById("cfi-display");
-        if (!data.cfiAvailability || data.cfiAvailability.length === 0) {
-            container.innerHTML = "<p>No CFI availability listings.</p>";
-            return;
-        }
-        container.innerHTML = data.cfiAvailability.map(r => `
-            <div style="border:1px solid #ccc; padding:8px; margin:8px 0; border-radius:4px;">
-                <strong>ID ${r.id}</strong> — ${r.aircraft_ident} — $${r.hourly_rate}/hr — <em>${r.status}</em><br/>
-                <small>Owner: ${r.owner_signer_address}</small><br/>
-                ${r.accepted_signer_address ? `<small>Accepted by: ${r.accepted_signer_address}</small><br/>` : ""}
-                ${r.notes ? r.notes : ""}
-            </div>
-        `).join("");
-    }
-
-    async function walletConnect() {
-        const wallet = await effectstream.login();
-        document.getElementById("address").innerText = "Midnight addr: " + wallet.address;
-        document.getElementById("signer-info").innerText =
-            wallet.signerAddress ? ("batcher EVM key: " + wallet.signerAddress) : "";
-    }
-
-    async function createProfile() {
-        const displayName = document.getElementById("display-name").value || "Anonymous";
-        const pilotPhase = document.getElementById("pilot-phase").value || "student";
-        const notes = document.getElementById("notes-profile").value || "";
-        document.getElementById("tx-result").innerText = "Submitting...";
-        try {
-            const result = await effectstream.sendCreateProfile(displayName, pilotPhase, notes);
-            console.log("[tx-debug]", result);
-            document.getElementById("tx-result").innerText = "Profile created! " + JSON.stringify(result, null, 2);
-            await fetchProfiles();
-        } catch (err) {
-            document.getElementById("tx-result").innerText = "Error: " + err.message;
-            console.error(err);
-        }
-    }
-
-    async function createStudentRequest() {
-        const aircraftIdent = document.getElementById("sr-aircraft").value;
-        const notes = document.getElementById("sr-notes").value || "";
-        document.getElementById("sr-create-result").innerText = "Submitting...";
-        try {
-            const result = await effectstream.sendAction(["create_student_request", aircraftIdent, notes]);
-            console.log("[tx-debug] create_student_request:", result);
-            document.getElementById("sr-create-result").innerText = "Request created! " + JSON.stringify(result, null, 2);
-            await fetchStudentRequests();
-        } catch (err) {
-            document.getElementById("sr-create-result").innerText = "Error: " + err.message;
-            console.error(err);
-        }
-    }
-
-    async function acceptStudentRequest() {
-        const id = parseInt(document.getElementById("sr-id").value, 10);
-        document.getElementById("sr-action-result").innerText = "Submitting...";
-        try {
-            const result = await effectstream.sendAction(["accept_student_request", id]);
-            console.log("[tx-debug] accept_student_request:", result);
-            document.getElementById("sr-action-result").innerText = "Accepted! " + JSON.stringify(result, null, 2);
-            await fetchStudentRequests();
-        } catch (err) {
-            document.getElementById("sr-action-result").innerText = "Error: " + err.message;
-        }
-    }
-
-    async function withdrawStudentRequest() {
-        const id = parseInt(document.getElementById("sr-id").value, 10);
-        document.getElementById("sr-action-result").innerText = "Submitting...";
-        try {
-            const result = await effectstream.sendAction(["withdraw_student_request", id]);
-            console.log("[tx-debug] withdraw_student_request:", result);
-            document.getElementById("sr-action-result").innerText = "Withdrawn! " + JSON.stringify(result, null, 2);
-            await fetchStudentRequests();
-        } catch (err) {
-            document.getElementById("sr-action-result").innerText = "Error: " + err.message;
-        }
-    }
-
-    async function createCfiAvailability() {
-        const aircraftIdent = document.getElementById("cfi-aircraft").value;
-        const hourlyRate = parseFloat(document.getElementById("cfi-rate").value);
-        const notes = document.getElementById("cfi-notes").value || "";
-        document.getElementById("cfi-create-result").innerText = "Submitting...";
-        try {
-            const result = await effectstream.sendAction(["create_cfi_availability", aircraftIdent, hourlyRate, notes]);
-            console.log("[tx-debug] create_cfi_availability:", result);
-            document.getElementById("cfi-create-result").innerText = "Availability posted! " + JSON.stringify(result, null, 2);
-            await fetchCfiAvailability();
-        } catch (err) {
-            document.getElementById("cfi-create-result").innerText = "Error: " + err.message;
-            console.error(err);
-        }
-    }
-
-    async function acceptCfiAvailability() {
-        const id = parseInt(document.getElementById("cfi-id").value, 10);
-        document.getElementById("cfi-action-result").innerText = "Submitting...";
-        try {
-            const result = await effectstream.sendAction(["accept_cfi_availability", id]);
-            console.log("[tx-debug] accept_cfi_availability:", result);
-            document.getElementById("cfi-action-result").innerText = "Accepted! " + JSON.stringify(result, null, 2);
-            await fetchCfiAvailability();
-        } catch (err) {
-            document.getElementById("cfi-action-result").innerText = "Error: " + err.message;
-        }
-    }
-
-    async function withdrawCfiAvailability() {
-        const id = parseInt(document.getElementById("cfi-id").value, 10);
-        document.getElementById("cfi-action-result").innerText = "Submitting...";
-        try {
-            const result = await effectstream.sendAction(["withdraw_cfi_availability", id]);
-            console.log("[tx-debug] withdraw_cfi_availability:", result);
-            document.getElementById("cfi-action-result").innerText = "Withdrawn! " + JSON.stringify(result, null, 2);
-            await fetchCfiAvailability();
-        } catch (err) {
-            document.getElementById("cfi-action-result").innerText = "Error: " + err.message;
-        }
-    }
-
-    async function fetchAircraft() {
-        const data = await fetch(`${API}/api/aircraft`).then(r => r.json());
-        const container = document.getElementById("ac-display");
-        if (!data.aircraft || data.aircraft.length === 0) {
-            container.innerHTML = "<p>No aircraft registered.</p>";
-            return;
-        }
-        container.innerHTML = data.aircraft.map(a => `
-            <div style="border:1px solid #ccc; padding:8px; margin:8px 0; border-radius:4px;">
-                <strong>${a.tail_number}</strong> — ${a.manufacturer} ${a.model} (${a.year}) — <em>${a.aircraft_category}</em><br/>
-                <small>Owner: ${a.owner_signer_address}</small><br/>
-                <small>Status: ${a.status} | ID: ${a.id}</small>
-            </div>
-        `).join("");
-    }
-
-    async function createAircraft() {
-        const tailNumber = document.getElementById("ac-tail").value;
-        const manufacturer = document.getElementById("ac-manufacturer").value;
-        const model = document.getElementById("ac-model").value;
-        const year = parseInt(document.getElementById("ac-year").value, 10);
-        const aircraftCategory = document.getElementById("ac-category").value;
-        document.getElementById("ac-create-result").innerText = "Submitting...";
-        try {
-            const result = await effectstream.sendAction(["create_aircraft", tailNumber, manufacturer, model, year, aircraftCategory]);
-            console.log("[tx-debug] create_aircraft:", result);
-            document.getElementById("ac-create-result").innerText = "Aircraft registered! " + JSON.stringify(result, null, 2);
-            await fetchAircraft();
-        } catch (err) {
-            document.getElementById("ac-create-result").innerText = "Error: " + err.message;
-            console.error(err);
-        }
-    }
-
-    async function updateAircraftAction() {
-        const id = parseInt(document.getElementById("ac-update-id").value, 10);
-        const manufacturer = document.getElementById("ac-update-manufacturer").value;
-        const model = document.getElementById("ac-update-model").value;
-        const year = parseInt(document.getElementById("ac-update-year").value, 10);
-        const aircraftCategory = document.getElementById("ac-update-category").value;
-        document.getElementById("ac-update-result").innerText = "Submitting...";
-        try {
-            const result = await effectstream.sendAction(["update_aircraft", id, manufacturer, model, year, aircraftCategory]);
-            console.log("[tx-debug] update_aircraft:", result);
-            document.getElementById("ac-update-result").innerText = "Updated! " + JSON.stringify(result, null, 2);
-            await fetchAircraft();
-        } catch (err) {
-            document.getElementById("ac-update-result").innerText = "Error: " + err.message;
-        }
-    }
-
-    async function deactivateAircraftAction() {
-        const id = parseInt(document.getElementById("ac-deactivate-id").value, 10);
-        document.getElementById("ac-deactivate-result").innerText = "Submitting...";
-        try {
-            const result = await effectstream.sendAction(["deactivate_aircraft", id]);
-            console.log("[tx-debug] deactivate_aircraft:", result);
-            document.getElementById("ac-deactivate-result").innerText = "Deactivated! " + JSON.stringify(result, null, 2);
-            await fetchAircraft();
-        } catch (err) {
-            document.getElementById("ac-deactivate-result").innerText = "Error: " + err.message;
-        }
-    }
-
-    async function fetchFlights() {
-        const data = await fetch(`${API}/api/flights`).then(r => r.json());
-        const container = document.getElementById("fl-display");
-        if (!data.flights || data.flights.length === 0) {
-            container.innerHTML = "<p>No flights logged.</p>";
-            return;
-        }
-        container.innerHTML = data.flights.map(f => `
-            <div style="border:1px solid #ccc; padding:8px; margin:8px 0; border-radius:4px;">
-                <strong>${new Date(f.flight_date).toLocaleDateString()}</strong> — Aircraft ID: ${f.aircraft_id}<br/>
-                <strong>${f.departure_airport} → ${f.arrival_airport}</strong><br/>
-                Total: ${f.total_time}h | PIC: ${f.pic_time}h | Dual: ${f.dual_received_time}h | Night: ${f.night_time}h | Instrument: ${f.instrument_time}h<br/>
-                <small>Owner: ${f.owner_signer_address}</small><br/>
-                <small>Status: ${f.status} | ID: ${f.id}</small><br/>
-                ${f.notes ? `<em>${f.notes}</em>` : ""}
-            </div>
-        `).join("");
-    }
-
-    async function logFlight() {
-        const aircraftId = parseInt(document.getElementById("fl-aircraft-id").value, 10);
-        const date = document.getElementById("fl-date").value;
-        const departure = document.getElementById("fl-departure").value;
-        const arrival = document.getElementById("fl-arrival").value;
-        const totalTime = parseFloat(document.getElementById("fl-total").value) || 0;
-        const picTime = parseFloat(document.getElementById("fl-pic").value) || 0;
-        const dualTime = parseFloat(document.getElementById("fl-dual").value) || 0;
-        const nightTime = parseFloat(document.getElementById("fl-night").value) || 0;
-        const instrumentTime = parseFloat(document.getElementById("fl-instrument").value) || 0;
-        const notes = document.getElementById("fl-notes").value || "";
-        document.getElementById("fl-create-result").innerText = "Submitting...";
-        try {
-            const result = await effectstream.sendAction([
-                "log_flight", aircraftId, date, departure, arrival,
-                totalTime, picTime, dualTime, nightTime, instrumentTime, notes
-            ]);
-            console.log("[tx-debug] log_flight:", result);
-            document.getElementById("fl-create-result").innerText = "Flight logged! " + JSON.stringify(result, null, 2);
-            await fetchFlights();
-        } catch (err) {
-            document.getElementById("fl-create-result").innerText = "Error: " + err.message;
-            console.error(err);
-        }
-    }
-
-    async function updateFlightAction() {
-        const flightId = parseInt(document.getElementById("fl-update-id").value, 10);
-        const aircraftId = parseInt(document.getElementById("fl-update-aircraft-id").value, 10);
-        const date = document.getElementById("fl-update-date").value;
-        const departure = document.getElementById("fl-update-departure").value;
-        const arrival = document.getElementById("fl-update-arrival").value;
-        const totalTime = parseFloat(document.getElementById("fl-update-total").value) || 0;
-        const picTime = parseFloat(document.getElementById("fl-update-pic").value) || 0;
-        const dualTime = parseFloat(document.getElementById("fl-update-dual").value) || 0;
-        const nightTime = parseFloat(document.getElementById("fl-update-night").value) || 0;
-        const instrumentTime = parseFloat(document.getElementById("fl-update-instrument").value) || 0;
-        const notes = document.getElementById("fl-update-notes").value || "";
-        document.getElementById("fl-update-result").innerText = "Submitting...";
-        try {
-            const result = await effectstream.sendAction([
-                "update_flight", flightId, aircraftId, date, departure, arrival,
-                totalTime, picTime, dualTime, nightTime, instrumentTime, notes
-            ]);
-            console.log("[tx-debug] update_flight:", result);
-            document.getElementById("fl-update-result").innerText = "Updated! " + JSON.stringify(result, null, 2);
-            await fetchFlights();
-        } catch (err) {
-            document.getElementById("fl-update-result").innerText = "Error: " + err.message;
-        }
-    }
-
-    async function voidFlightAction() {
-        const id = parseInt(document.getElementById("fl-void-id").value, 10);
-        document.getElementById("fl-void-result").innerText = "Submitting...";
-        try {
-            const result = await effectstream.sendAction(["void_flight", id]);
-            console.log("[tx-debug] void_flight:", result);
-            document.getElementById("fl-void-result").innerText = "Voided! " + JSON.stringify(result, null, 2);
-            await fetchFlights();
-        } catch (err) {
-            document.getElementById("fl-void-result").innerText = "Error: " + err.message;
-        }
-    }
-
-    async function createTrainingRecord() {
-        const instructor = document.getElementById("tr-instructor").value;
-        const flightId = parseInt(document.getElementById("tr-flight-id").value, 10);
-        const trainingType = document.getElementById("tr-type").value;
-        const notes = document.getElementById("tr-notes").value || "";
-        document.getElementById("tr-create-result").innerText = "Submitting...";
-        try {
-            const result = await effectstream.sendAction([
-                "create_training_record", instructor, flightId, trainingType, notes
-            ]);
-            console.log("[tx-debug] create_training_record:", result);
-            document.getElementById("tr-create-result").innerText = "Training record created! " + JSON.stringify(result, null, 2);
-            await fetchTrainingRecords();
-        } catch (err) {
-            document.getElementById("tr-create-result").innerText = "Error: " + err.message;
-            console.error(err);
-        }
-    }
-
-    async function updateTrainingRecordAction() {
-        const id = parseInt(document.getElementById("tr-update-id").value, 10);
-        const trainingType = document.getElementById("tr-update-type").value;
-        const notes = document.getElementById("tr-update-notes").value || "";
-        document.getElementById("tr-update-result").innerText = "Submitting...";
-        try {
-            const result = await effectstream.sendAction(["update_training_record", id, trainingType, notes]);
-            console.log("[tx-debug] update_training_record:", result);
-            document.getElementById("tr-update-result").innerText = "Updated! " + JSON.stringify(result, null, 2);
-            await fetchTrainingRecords();
-        } catch (err) {
-            document.getElementById("tr-update-result").innerText = "Error: " + err.message;
-        }
-    }
-
-    async function completeTrainingRecordAction() {
-        const id = parseInt(document.getElementById("tr-complete-id").value, 10);
-        document.getElementById("tr-complete-result").innerText = "Submitting...";
-        try {
-            const result = await effectstream.sendAction(["complete_training_record", id]);
-            console.log("[tx-debug] complete_training_record:", result);
-            document.getElementById("tr-complete-result").innerText = "Completed! " + JSON.stringify(result, null, 2);
-            await fetchTrainingRecords();
-        } catch (err) {
-            document.getElementById("tr-complete-result").innerText = "Error: " + err.message;
-        }
-    }
-
-    async function fetchTrainingRecords() {
-        const data = await fetch(`${API}/api/training-records`).then(r => r.json());
-        const container = document.getElementById("tr-display");
-        if (!data.trainingRecords || data.trainingRecords.length === 0) {
-            container.innerHTML = "<p>No active training records.</p>";
-            return;
-        }
-        container.innerHTML = data.trainingRecords.map(r => `
-            <div style="border:1px solid #ccc; padding:8px; margin:8px 0; border-radius:4px;">
-                <strong>ID ${r.id}</strong> — ${r.training_type} — <em>${r.status}</em><br/>
-                Student: ${r.student_signer_address}<br/>
-                Instructor: ${r.instructor_signer_address}<br/>
-                Flight Log ID: ${r.flight_log_id} | Aircraft ID: ${r.aircraft_id}<br/>
-                <small>${new Date(r.created_at).toLocaleString()}</small>
-                ${r.notes ? `<br/><em>${r.notes}</em>` : ""}
-            </div>
-        `).join("");
-    }
-
-    async function createEndorsement() {
-        const trainingId = parseInt(document.getElementById("en-training-id").value, 10);
-        const endorsementType = document.getElementById("en-type").value;
-        const notes = document.getElementById("en-notes").value || "";
-        document.getElementById("en-create-result").innerText = "Submitting...";
-        try {
-            const result = await effectstream.sendAction([
-                "create_endorsement", trainingId, endorsementType, notes
-            ]);
-            console.log("[tx-debug] create_endorsement:", result);
-            document.getElementById("en-create-result").innerText = "Endorsement requested! " + JSON.stringify(result, null, 2);
-            await fetchEndorsements();
-        } catch (err) {
-            document.getElementById("en-create-result").innerText = "Error: " + err.message;
-        }
-    }
-
-    async function approveEndorsementAction() {
-        const id = parseInt(document.getElementById("en-approve-id").value, 10);
-        document.getElementById("en-approve-result").innerText = "Submitting...";
-        try {
-            const result = await effectstream.sendAction(["approve_endorsement", id]);
-            console.log("[tx-debug] approve_endorsement:", result);
-            document.getElementById("en-approve-result").innerText = "Approved! " + JSON.stringify(result, null, 2);
-            await fetchEndorsements();
-        } catch (err) {
-            document.getElementById("en-approve-result").innerText = "Error: " + err.message;
-        }
-    }
-
-    async function rejectEndorsementAction() {
-        const id = parseInt(document.getElementById("en-reject-id").value, 10);
-        const notes = document.getElementById("en-reject-notes").value || "";
-        document.getElementById("en-reject-result").innerText = "Submitting...";
-        try {
-            const result = await effectstream.sendAction(["reject_endorsement", id, notes]);
-            console.log("[tx-debug] reject_endorsement:", result);
-            document.getElementById("en-reject-result").innerText = "Rejected! " + JSON.stringify(result, null, 2);
-            await fetchEndorsements();
-        } catch (err) {
-            document.getElementById("en-reject-result").innerText = "Error: " + err.message;
-        }
-    }
-
-    async function fetchEndorsements() {
-        const data = await fetch(`${API}/api/endorsements`).then(r => r.json());
-        const container = document.getElementById("en-display");
-        if (!data.endorsements || data.endorsements.length === 0) {
-            container.innerHTML = "<p>No endorsements.</p>";
-            return;
-        }
-        container.innerHTML = data.endorsements.map(e => `
-            <div style="border:1px solid #ccc; padding:8px; margin:8px 0; border-radius:4px;">
-                <strong>ID ${e.id}</strong> — ${e.endorsement_type} — <em>${e.status}</em><br/>
-                Student: ${e.student_signer_address}<br/>
-                Instructor: ${e.instructor_signer_address}<br/>
-                ${e.approved_by_signer_address ? `Approved by: ${e.approved_by_signer_address}<br/>` : ""}
-                Training Record ID: ${e.training_record_id}<br/>
-                <small>${new Date(e.created_at).toLocaleString()}</small>
-                ${e.notes ? `<br/><em>${e.notes}</em>` : ""}
-            </div>
-        `).join("");
-    }
-</script>
 
 </html>
