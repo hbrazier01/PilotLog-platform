@@ -20,5 +20,15 @@ export default {
       env: { PGLITE: "true", ENABLE_DEV_AND_DEBUG_ENDPOINTS: "true" },
       dependsOn: [DbNames.PGLITE_WAIT, EvmNames.GENERATE_MOD],
     },
+    {
+      name: "batcher",
+      description: "Midnight wallet batcher (AIR-350 validation)",
+      cwd: path.join(root, "packages/batcher"),
+      args: ["run", "main.ts"],
+      waitToExit: false,
+      type: "system-dependency",
+      stopProcessAtPort: [3333],
+      dependsOn: [EvmNames.GENERATE_MOD],
+    },
   ],
 } satisfies OrchestratorConfig;

@@ -127,6 +127,11 @@ async function test() {
     const { identityTest } = await import("./stm/identity.test.ts");
     await identityTest(db);
 
+    console.log("\n--- Phase D: Midnight Identity End-to-End (AIR-350) ---\n");
+    await waitForProcess("batcher");
+    const { midnightIdentityTest } = await import("./stm/midnight-identity.test.ts");
+    await midnightIdentityTest(db);
+
     printSummary();
   } catch (e) {
     printSummary();
