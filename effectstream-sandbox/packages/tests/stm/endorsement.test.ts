@@ -89,16 +89,16 @@ export async function endorsementTest(db: Client) {
   // ── Setup: log a flight ───────────────────────────────────────────────────────
   await submit(wallet0, [
     "log_flight",
-    testAircraftId, "2024-07-01", "KSQL", "KPAO",
+    testAircraftId, "2024-07-01", "KVNY", "KBUR",
     1.5, 0.0, 1.5, 0.0, 0.0,
-    "Pre-solo dual instruction",
+    "Pre-solo dual instruction endorsement test",
   ]);
 
   let testFlightId: number | null = null;
   await assertSQL(
     "setup: flight logged for endorsement test",
     db,
-    `SELECT * FROM flight_log WHERE owner_signer_address = '${wallet0.address.toLowerCase()}' AND departure_airport = 'KSQL' ORDER BY id DESC LIMIT 1`,
+    `SELECT * FROM flight_log WHERE owner_signer_address = '${wallet0.address.toLowerCase()}' AND departure_airport = 'KVNY' ORDER BY id DESC LIMIT 1`,
     (res) => res.rows.length >= 1,
     (res) => { testFlightId = res.rows[0].id; return res.rows[0].status === "active"; },
   );
@@ -196,6 +196,54 @@ export async function endorsementTest(db: Client) {
     (res) => res.rows.length === 0,
     (_res) => true,
   );
+
+  // ── 4b. Training validation: completed (inactive) training record produces no row
+  // Complete the training record, then try to create an endorsement against it
+  await submit(wallet0, [
+    "create_training_record",
+    wallet1.address,
+    testFlightId,
+    "Night Training",
+    "Training record for inactive-training validation test",
+  ]);
+
+  let completedTrainingId: number | null = null;
+  await assertSQL(
+    "setup: training record for inactive-training validation",
+    db,
+    `SELECT * FROM training_record WHERE student_signer_address = '${wallet0.address.toLowerCase()}' AND training_type = 'Night Training' ORDER BY id DESC LIMIT 1`,
+    (res) => res.rows.length >= 1,
+    (res) => { completedTrainingId = res.rows[0].id; return res.rows[0].status === "active"; },
+  );
+
+  if (completedTrainingId !== null) {
+    // Complete the training record to make it inactive
+    await submit(wallet0, ["complete_training_record", completedTrainingId]);
+    await assertSQL(
+      "setup: training record completed (now inactive) for endorsement validation",
+      db,
+      `SELECT * FROM training_record WHERE id = ${completedTrainingId}`,
+      (res) => res.rows.length === 1 && res.rows[0].status === "completed",
+      (res) => res.rows[0].status === "completed",
+    );
+
+    // Attempt endorsement against completed (inactive) training record
+    await submit(wallet0, [
+      "create_endorsement",
+      completedTrainingId,
+      "Night Training Complete",
+      "Should not insert — training record is completed (inactive)",
+    ]);
+
+    await new Promise((r) => setTimeout(r, 3000));
+    await assertSQL(
+      "training validation: create_endorsement with completed training record inserts no row (inactive training rejected)",
+      db,
+      `SELECT * FROM endorsement WHERE training_record_id = ${completedTrainingId}`,
+      (res) => res.rows.length === 0,
+      (_res) => true,
+    );
+  }
 
   // ── 5. Endorsement type validation: invalid type produces no row ──────────────
   await submit(wallet0, [

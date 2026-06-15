@@ -974,7 +974,7 @@ export interface IInsertEndorsementQuery {
   result: IInsertEndorsementResult;
 }
 
-const insertEndorsementIR: any = {"usedParamSet":{"training_record_id":true,"student_signer_address":true,"endorsement_type":true,"notes":true,"block_height":true},"params":[{"name":"training_record_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":136,"b":155},{"a":280,"b":299}]},{"name":"student_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":158,"b":181}]},{"name":"endorsement_type","required":true,"transform":{"type":"scalar"},"locs":[{"a":216,"b":233}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":236,"b":242}]},{"name":"block_height","required":true,"transform":{"type":"scalar"},"locs":[{"a":245,"b":258}]}],"statement":"INSERT INTO endorsement (training_record_id, student_signer_address, instructor_signer_address, endorsement_type, notes, block_height)\nSELECT :training_record_id!, :student_signer_address!, tr.instructor_signer_address, :endorsement_type!, :notes!, :block_height!\nFROM training_record tr WHERE tr.id = :training_record_id! AND tr.status = 'active'"};
+const insertEndorsementIR: any = {"usedParamSet":{"training_record_id":true,"student_signer_address":true,"endorsement_type":true,"notes":true,"block_height":true},"params":[{"name":"training_record_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":142,"b":161},{"a":302,"b":321}]},{"name":"student_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":164,"b":187}]},{"name":"endorsement_type","required":true,"transform":{"type":"scalar"},"locs":[{"a":220,"b":237}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":240,"b":246}]},{"name":"block_height","required":true,"transform":{"type":"scalar"},"locs":[{"a":249,"b":262}]}],"statement":"INSERT INTO endorsement (training_record_id, student_signer_address, instructor_signer_address, endorsement_type, notes, block_height)\nSELECT :training_record_id!, :student_signer_address!, tr.instructor_signer_address, :endorsement_type!, :notes!, :block_height!\nFROM training_record tr WHERE tr.id = :training_record_id! AND tr.status = 'active'"};
 
 /**
  * Query generated from SQL:
@@ -1003,7 +1003,7 @@ export interface IApproveEndorsementQuery {
   result: IApproveEndorsementResult;
 }
 
-const approveEndorsementIR: any = {"usedParamSet":{"approved_by_signer_address":true,"id":true},"params":[{"name":"approved_by_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":63,"b":89},{"a":131,"b":157}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":108,"b":111}]}],"statement":"UPDATE endorsement SET status = 'approved', approved_by_signer_address = :approved_by_signer_address!, updated_at = NOW() WHERE id = :id! AND instructor_signer_address = :approved_by_signer_address! AND status = 'pending'"};
+const approveEndorsementIR: any = {"usedParamSet":{"approved_by_signer_address":true,"id":true},"params":[{"name":"approved_by_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":73,"b":100},{"a":170,"b":197}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":133,"b":136}]}],"statement":"UPDATE endorsement SET status = 'approved', approved_by_signer_address = :approved_by_signer_address!, updated_at = NOW() WHERE id = :id! AND instructor_signer_address = :approved_by_signer_address! AND status = 'pending'"};
 
 /**
  * Query generated from SQL:
@@ -1031,7 +1031,7 @@ export interface IRejectEndorsementQuery {
   result: IRejectEndorsementResult;
 }
 
-const rejectEndorsementIR: any = {"usedParamSet":{"approved_by_signer_address":true,"id":true},"params":[{"name":"approved_by_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":63,"b":89},{"a":131,"b":157}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":108,"b":111}]}],"statement":"UPDATE endorsement SET status = 'rejected', approved_by_signer_address = :approved_by_signer_address!, updated_at = NOW() WHERE id = :id! AND instructor_signer_address = :approved_by_signer_address! AND status = 'pending'"};
+const rejectEndorsementIR: any = {"usedParamSet":{"approved_by_signer_address":true,"id":true},"params":[{"name":"approved_by_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":73,"b":100},{"a":170,"b":197}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":133,"b":136}]}],"statement":"UPDATE endorsement SET status = 'rejected', approved_by_signer_address = :approved_by_signer_address!, updated_at = NOW() WHERE id = :id! AND instructor_signer_address = :approved_by_signer_address! AND status = 'pending'"};
 
 /**
  * Query generated from SQL:
@@ -1105,7 +1105,7 @@ export interface IGetEndorsementByIdQuery {
   result: IGetEndorsementByIdResult;
 }
 
-const getEndorsementByIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":36,"b":39}]}],"statement":"SELECT * FROM endorsement WHERE id = :id!"};
+const getEndorsementByIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":37,"b":40}]}],"statement":"SELECT * FROM endorsement WHERE id = :id!"};
 
 /**
  * Query generated from SQL:
@@ -1177,7 +1177,7 @@ export interface IGetEndorsementsByTrainingRecordQuery {
   result: IGetEndorsementsByTrainingRecordResult;
 }
 
-const getEndorsementsByTrainingRecordIR: any = {"usedParamSet":{"training_record_id":true},"params":[{"name":"training_record_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":52,"b":70}]}],"statement":"SELECT * FROM endorsement WHERE training_record_id = :training_record_id! ORDER BY id DESC LIMIT 100"};
+const getEndorsementsByTrainingRecordIR: any = {"usedParamSet":{"training_record_id":true},"params":[{"name":"training_record_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":53,"b":72}]}],"statement":"SELECT * FROM endorsement WHERE training_record_id = :training_record_id! ORDER BY id DESC LIMIT 100"};
 
 /**
  * Query generated from SQL:
