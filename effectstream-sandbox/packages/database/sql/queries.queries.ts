@@ -284,3 +284,165 @@ export interface IGetAllCfiAvailabilityQuery {
 const getAllCfiAvailabilityIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT * FROM cfi_availability ORDER BY id DESC LIMIT 100"};
 
 export const getAllCfiAvailability = new PreparedQuery<IGetAllCfiAvailabilityParams,IGetAllCfiAvailabilityResult>(getAllCfiAvailabilityIR);
+
+
+// ── Aircraft ───────────────────────────────────────────────────────────────────
+
+/** 'InsertAircraft' parameters type */
+export interface IInsertAircraftParams {
+  owner_signer_address: string;
+  tail_number: string;
+  manufacturer: string;
+  model: string;
+  year: number;
+  aircraft_category: string;
+  block_height: number;
+}
+
+/** 'InsertAircraft' return type */
+export type IInsertAircraftResult = void;
+
+/** 'InsertAircraft' query type */
+export interface IInsertAircraftQuery {
+  params: IInsertAircraftParams;
+  result: IInsertAircraftResult;
+}
+
+const insertAircraftIR: any = {"usedParamSet":{"owner_signer_address":true,"tail_number":true,"manufacturer":true,"model":true,"year":true,"aircraft_category":true,"block_height":true},"params":[{"name":"owner_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":125,"b":146}]},{"name":"tail_number","required":true,"transform":{"type":"scalar"},"locs":[{"a":149,"b":161}]},{"name":"manufacturer","required":true,"transform":{"type":"scalar"},"locs":[{"a":164,"b":177}]},{"name":"model","required":true,"transform":{"type":"scalar"},"locs":[{"a":180,"b":186}]},{"name":"year","required":true,"transform":{"type":"scalar"},"locs":[{"a":189,"b":194}]},{"name":"aircraft_category","required":true,"transform":{"type":"scalar"},"locs":[{"a":197,"b":215}]},{"name":"block_height","required":true,"transform":{"type":"scalar"},"locs":[{"a":218,"b":231}]}],"statement":"INSERT INTO aircraft (owner_signer_address, tail_number, manufacturer, model, year, aircraft_category, block_height)\nVALUES (:owner_signer_address!, :tail_number!, :manufacturer!, :model!, :year!, :aircraft_category!, :block_height!)"};
+
+export const insertAircraft = new PreparedQuery<IInsertAircraftParams,IInsertAircraftResult>(insertAircraftIR);
+
+
+/** 'UpdateAircraft' parameters type */
+export interface IUpdateAircraftParams {
+  manufacturer: string;
+  model: string;
+  year: number;
+  aircraft_category: string;
+  id: number;
+  owner_signer_address: string;
+}
+
+/** 'UpdateAircraft' return type */
+export type IUpdateAircraftResult = void;
+
+/** 'UpdateAircraft' query type */
+export interface IUpdateAircraftQuery {
+  params: IUpdateAircraftParams;
+  result: IUpdateAircraftResult;
+}
+
+const updateAircraftIR: any = {"usedParamSet":{"manufacturer":true,"model":true,"year":true,"aircraft_category":true,"id":true,"owner_signer_address":true},"params":[{"name":"manufacturer","required":true,"transform":{"type":"scalar"},"locs":[{"a":35,"b":48}]},{"name":"model","required":true,"transform":{"type":"scalar"},"locs":[{"a":59,"b":65}]},{"name":"year","required":true,"transform":{"type":"scalar"},"locs":[{"a":75,"b":80}]},{"name":"aircraft_category","required":true,"transform":{"type":"scalar"},"locs":[{"a":103,"b":121}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":154,"b":157}]},{"name":"owner_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":186,"b":207}]}],"statement":"UPDATE aircraft SET manufacturer = :manufacturer!, model = :model!, year = :year!, aircraft_category = :aircraft_category!, updated_at = NOW() WHERE id = :id! AND owner_signer_address = :owner_signer_address! AND status = 'active'"};
+
+export const updateAircraft = new PreparedQuery<IUpdateAircraftParams,IUpdateAircraftResult>(updateAircraftIR);
+
+
+/** 'DeactivateAircraft' parameters type */
+export interface IDeactivateAircraftParams {
+  id: number;
+  owner_signer_address: string;
+}
+
+/** 'DeactivateAircraft' return type */
+export type IDeactivateAircraftResult = void;
+
+/** 'DeactivateAircraft' query type */
+export interface IDeactivateAircraftQuery {
+  params: IDeactivateAircraftParams;
+  result: IDeactivateAircraftResult;
+}
+
+const deactivateAircraftIR: any = {"usedParamSet":{"id":true,"owner_signer_address":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":71,"b":74}]},{"name":"owner_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":103,"b":124}]}],"statement":"UPDATE aircraft SET status = 'inactive', updated_at = NOW() WHERE id = :id! AND owner_signer_address = :owner_signer_address! AND status = 'active'"};
+
+export const deactivateAircraft = new PreparedQuery<IDeactivateAircraftParams,IDeactivateAircraftResult>(deactivateAircraftIR);
+
+
+/** 'GetAllAircraft' parameters type */
+export type IGetAllAircraftParams = void;
+
+/** 'GetAllAircraft' return type */
+export interface IGetAllAircraftResult {
+  id: number;
+  owner_signer_address: string;
+  tail_number: string;
+  manufacturer: string;
+  model: string;
+  year: number;
+  aircraft_category: string;
+  status: string;
+  created_at: Date;
+  updated_at: Date;
+  block_height: number;
+}
+
+/** 'GetAllAircraft' query type */
+export interface IGetAllAircraftQuery {
+  params: IGetAllAircraftParams;
+  result: IGetAllAircraftResult;
+}
+
+const getAllAircraftIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT * FROM aircraft WHERE status = 'active' ORDER BY id DESC LIMIT 100"};
+
+export const getAllAircraft = new PreparedQuery<IGetAllAircraftParams,IGetAllAircraftResult>(getAllAircraftIR);
+
+
+/** 'GetAircraftById' parameters type */
+export interface IGetAircraftByIdParams {
+  id: number;
+}
+
+/** 'GetAircraftById' return type */
+export interface IGetAircraftByIdResult {
+  id: number;
+  owner_signer_address: string;
+  tail_number: string;
+  manufacturer: string;
+  model: string;
+  year: number;
+  aircraft_category: string;
+  status: string;
+  created_at: Date;
+  updated_at: Date;
+  block_height: number;
+}
+
+/** 'GetAircraftById' query type */
+export interface IGetAircraftByIdQuery {
+  params: IGetAircraftByIdParams;
+  result: IGetAircraftByIdResult;
+}
+
+const getAircraftByIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":34,"b":37}]}],"statement":"SELECT * FROM aircraft WHERE id = :id!"};
+
+export const getAircraftById = new PreparedQuery<IGetAircraftByIdParams,IGetAircraftByIdResult>(getAircraftByIdIR);
+
+
+/** 'GetAircraftBySigner' parameters type */
+export interface IGetAircraftBySignerParams {
+  owner_signer_address: string;
+}
+
+/** 'GetAircraftBySigner' return type */
+export interface IGetAircraftBySignerResult {
+  id: number;
+  owner_signer_address: string;
+  tail_number: string;
+  manufacturer: string;
+  model: string;
+  year: number;
+  aircraft_category: string;
+  status: string;
+  created_at: Date;
+  updated_at: Date;
+  block_height: number;
+}
+
+/** 'GetAircraftBySigner' query type */
+export interface IGetAircraftBySignerQuery {
+  params: IGetAircraftBySignerParams;
+  result: IGetAircraftBySignerResult;
+}
+
+const getAircraftBySignerIR: any = {"usedParamSet":{"owner_signer_address":true},"params":[{"name":"owner_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":52,"b":73}]}],"statement":"SELECT * FROM aircraft WHERE owner_signer_address = :owner_signer_address! AND status = 'active' ORDER BY id DESC LIMIT 100"};
+
+export const getAircraftBySigner = new PreparedQuery<IGetAircraftBySignerParams,IGetAircraftBySignerResult>(getAircraftBySignerIR);

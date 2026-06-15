@@ -4,6 +4,9 @@ import {
   getProfileBySigner,
   getAllStudentRequests,
   getAllCfiAvailability,
+  getAllAircraft,
+  getAircraftById,
+  getAircraftBySigner,
 } from "@pilotlog-sandbox/database";
 import type { Pool } from "pg";
 import type { StartConfigApiRouter } from "@effectstream/runtime";
@@ -47,5 +50,37 @@ export const apiRouter: StartConfigApiRouter = async function (
       "/api/cfi-availability",
     );
     reply.send({ cfiAvailability: result });
+  });
+
+  server.get("/api/aircraft", async (_request, reply) => {
+    const result = await runPreparedQuery(
+      getAllAircraft.run(undefined, dbConn),
+      "/api/aircraft",
+    );
+    reply.send({ aircraft: result });
+  });
+
+  server.get<{ Params: { id: string } }>("/api/aircraft/:id", async (request, reply) => {
+    const id = parseInt(request.params.id, 10);
+    if (isNaN(id)) {
+      return reply.status(400).send({ error: "Invalid aircraft id" });
+    }
+    const result = await runPreparedQuery(
+      getAircraftById.run({ id }, dbConn),
+      "/api/aircraft/:id",
+    );
+    if (result.length === 0) {
+      return reply.status(404).send({ error: "Aircraft not found" });
+    }
+    reply.send({ aircraft: result[0] });
+  });
+
+  server.get<{ Params: { signer: string } }>("/api/my-aircraft/:signer", async (request, reply) => {
+    const { signer } = request.params;
+    const result = await runPreparedQuery(
+      getAircraftBySigner.run({ owner_signer_address: signer.toLowerCase() }, dbConn),
+      "/api/my-aircraft/:signer",
+    );
+    reply.send({ aircraft: result });
   });
 };

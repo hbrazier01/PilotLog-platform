@@ -67,6 +67,36 @@
         <h3>Open Availability (GET /api/cfi-availability)</h3>
         <button onclick="fetchCfiAvailability()">Refresh</button>
         <div id="cfi-display"></div>
+
+        <hr />
+        <h2>Aircraft Management</h2>
+
+        <h3>Register Aircraft</h3>
+        <input id="ac-tail" type="text" placeholder="Tail Number (e.g. N123AB)" />
+        <input id="ac-manufacturer" type="text" placeholder="Manufacturer (e.g. Cirrus)" />
+        <input id="ac-model" type="text" placeholder="Model (e.g. SR20 G6)" />
+        <input id="ac-year" type="number" placeholder="Year (e.g. 2022)" />
+        <input id="ac-category" type="text" placeholder="Category (e.g. Single Engine Land)" />
+        <button onclick="createAircraft()">Register Aircraft</button>
+        <div id="ac-create-result"></div>
+
+        <h3>Update Aircraft</h3>
+        <input id="ac-update-id" type="number" placeholder="Aircraft ID" />
+        <input id="ac-update-manufacturer" type="text" placeholder="Manufacturer" />
+        <input id="ac-update-model" type="text" placeholder="Model" />
+        <input id="ac-update-year" type="number" placeholder="Year" />
+        <input id="ac-update-category" type="text" placeholder="Category" />
+        <button onclick="updateAircraftAction()">Update Aircraft</button>
+        <div id="ac-update-result"></div>
+
+        <h3>Deactivate Aircraft</h3>
+        <input id="ac-deactivate-id" type="number" placeholder="Aircraft ID" />
+        <button onclick="deactivateAircraftAction()">Deactivate Aircraft</button>
+        <div id="ac-deactivate-result"></div>
+
+        <h3>Active Aircraft (GET /api/aircraft)</h3>
+        <button onclick="fetchAircraft()">Refresh</button>
+        <div id="ac-display"></div>
     </div>
 </body>
 
@@ -228,6 +258,70 @@
             await fetchCfiAvailability();
         } catch (err) {
             document.getElementById("cfi-action-result").innerText = "Error: " + err.message;
+        }
+    }
+
+    async function fetchAircraft() {
+        const data = await fetch(`${API}/api/aircraft`).then(r => r.json());
+        const container = document.getElementById("ac-display");
+        if (!data.aircraft || data.aircraft.length === 0) {
+            container.innerHTML = "<p>No aircraft registered.</p>";
+            return;
+        }
+        container.innerHTML = data.aircraft.map(a => `
+            <div style="border:1px solid #ccc; padding:8px; margin:8px 0; border-radius:4px;">
+                <strong>${a.tail_number}</strong> — ${a.manufacturer} ${a.model} (${a.year}) — <em>${a.aircraft_category}</em><br/>
+                <small>Owner: ${a.owner_signer_address}</small><br/>
+                <small>Status: ${a.status} | ID: ${a.id}</small>
+            </div>
+        `).join("");
+    }
+
+    async function createAircraft() {
+        const tailNumber = document.getElementById("ac-tail").value;
+        const manufacturer = document.getElementById("ac-manufacturer").value;
+        const model = document.getElementById("ac-model").value;
+        const year = parseInt(document.getElementById("ac-year").value, 10);
+        const aircraftCategory = document.getElementById("ac-category").value;
+        document.getElementById("ac-create-result").innerText = "Submitting...";
+        try {
+            const result = await effectstream.sendAction(["create_aircraft", tailNumber, manufacturer, model, year, aircraftCategory]);
+            console.log("[tx-debug] create_aircraft:", result);
+            document.getElementById("ac-create-result").innerText = "Aircraft registered! " + JSON.stringify(result, null, 2);
+            await fetchAircraft();
+        } catch (err) {
+            document.getElementById("ac-create-result").innerText = "Error: " + err.message;
+            console.error(err);
+        }
+    }
+
+    async function updateAircraftAction() {
+        const id = parseInt(document.getElementById("ac-update-id").value, 10);
+        const manufacturer = document.getElementById("ac-update-manufacturer").value;
+        const model = document.getElementById("ac-update-model").value;
+        const year = parseInt(document.getElementById("ac-update-year").value, 10);
+        const aircraftCategory = document.getElementById("ac-update-category").value;
+        document.getElementById("ac-update-result").innerText = "Submitting...";
+        try {
+            const result = await effectstream.sendAction(["update_aircraft", id, manufacturer, model, year, aircraftCategory]);
+            console.log("[tx-debug] update_aircraft:", result);
+            document.getElementById("ac-update-result").innerText = "Updated! " + JSON.stringify(result, null, 2);
+            await fetchAircraft();
+        } catch (err) {
+            document.getElementById("ac-update-result").innerText = "Error: " + err.message;
+        }
+    }
+
+    async function deactivateAircraftAction() {
+        const id = parseInt(document.getElementById("ac-deactivate-id").value, 10);
+        document.getElementById("ac-deactivate-result").innerText = "Submitting...";
+        try {
+            const result = await effectstream.sendAction(["deactivate_aircraft", id]);
+            console.log("[tx-debug] deactivate_aircraft:", result);
+            document.getElementById("ac-deactivate-result").innerText = "Deactivated! " + JSON.stringify(result, null, 2);
+            await fetchAircraft();
+        } catch (err) {
+            document.getElementById("ac-deactivate-result").innerText = "Error: " + err.message;
         }
     }
 </script>

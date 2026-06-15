@@ -38,3 +38,22 @@ UPDATE cfi_availability SET status = 'withdrawn', updated_at = NOW() WHERE id = 
 
 /* @name getAllCfiAvailability */
 SELECT * FROM cfi_availability ORDER BY id DESC LIMIT 100;
+
+/* @name insertAircraft */
+INSERT INTO aircraft (owner_signer_address, tail_number, manufacturer, model, year, aircraft_category, block_height)
+VALUES (:owner_signer_address!, :tail_number!, :manufacturer!, :model!, :year!, :aircraft_category!, :block_height!);
+
+/* @name updateAircraft */
+UPDATE aircraft SET manufacturer = :manufacturer!, model = :model!, year = :year!, aircraft_category = :aircraft_category!, updated_at = NOW() WHERE id = :id! AND owner_signer_address = :owner_signer_address! AND status = 'active';
+
+/* @name deactivateAircraft */
+UPDATE aircraft SET status = 'inactive', updated_at = NOW() WHERE id = :id! AND owner_signer_address = :owner_signer_address! AND status = 'active';
+
+/* @name getAllAircraft */
+SELECT * FROM aircraft WHERE status = 'active' ORDER BY id DESC LIMIT 100;
+
+/* @name getAircraftById */
+SELECT * FROM aircraft WHERE id = :id!;
+
+/* @name getAircraftBySigner */
+SELECT * FROM aircraft WHERE owner_signer_address = :owner_signer_address! AND status = 'active' ORDER BY id DESC LIMIT 100;

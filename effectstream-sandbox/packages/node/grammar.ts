@@ -28,4 +28,21 @@ export const grammar = {
   withdraw_cfi_availability: [
     ["availabilityId", Type.Integer({ minimum: 1 })],
   ],
+  create_aircraft: [
+    ["tailNumber", Type.String({ maxLength: 10 })],
+    ["manufacturer", Type.String({ maxLength: 64 })],
+    ["model", Type.String({ maxLength: 64 })],
+    ["year", Type.Integer({ minimum: 1900, maximum: 2100 })],
+    ["aircraftCategory", Type.String({ maxLength: 64 })],
+  ],
+  update_aircraft: [
+    ["aircraftId", Type.Integer({ minimum: 1 })],
+    ["manufacturer", Type.String({ maxLength: 64 })],
+    ["model", Type.String({ maxLength: 64 })],
+    ["year", Type.Integer({ minimum: 1900, maximum: 2100 })],
+    ["aircraftCategory", Type.String({ maxLength: 64 })],
+  ],
+  deactivate_aircraft: [
+    ["aircraftId", Type.Integer({ minimum: 1 })],
+  ],
 } as const satisfies GrammarDefinition;

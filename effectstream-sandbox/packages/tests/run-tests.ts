@@ -136,6 +136,10 @@ async function test() {
     const { opportunitiesTest } = await import("./stm/opportunities.test.ts");
     await opportunitiesTest(db);
 
+    console.log("\n--- Phase F: Aircraft Foundation (AIR-352) ---\n");
+    const { aircraftTest } = await import("./stm/aircraft.test.ts");
+    await aircraftTest(db);
+
     printSummary();
   } catch (e) {
     printSummary();

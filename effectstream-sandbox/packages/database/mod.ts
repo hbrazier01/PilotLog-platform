@@ -3,4 +3,8 @@ export {
   insertStudentRequest, acceptStudentRequest, withdrawStudentRequest, getAllStudentRequests,
   insertCfiAvailability, acceptCfiAvailability, withdrawCfiAvailability, getAllCfiAvailability,
 } from "./sql/queries.queries.ts";
+export {
+  insertAircraft, updateAircraft, deactivateAircraft,
+  getAllAircraft, getAircraftById, getAircraftBySigner,
+} from "./sql/queries.queries.ts";
 export { migrationTable } from "./migration-order.ts";

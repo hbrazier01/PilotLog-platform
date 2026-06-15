@@ -10,6 +10,9 @@ import {
   insertCfiAvailability,
   acceptCfiAvailability,
   withdrawCfiAvailability,
+  insertAircraft,
+  updateAircraft,
+  deactivateAircraft,
 } from "@pilotlog-sandbox/database";
 import { grammar } from "./grammar.ts";
 
@@ -75,6 +78,39 @@ stm.addStateTransition("withdraw_cfi_availability", function* (data) {
   const { parsedInput, signerAddress } = data;
   yield* World.resolve(withdrawCfiAvailability, {
     id: parsedInput.availabilityId,
+    owner_signer_address: signerAddress!.toLowerCase(),
+  });
+});
+
+stm.addStateTransition("create_aircraft", function* (data) {
+  const { parsedInput, signerAddress, blockHeight } = data;
+  yield* World.resolve(insertAircraft, {
+    owner_signer_address: signerAddress!.toLowerCase(),
+    tail_number: parsedInput.tailNumber,
+    manufacturer: parsedInput.manufacturer,
+    model: parsedInput.model,
+    year: parsedInput.year,
+    aircraft_category: parsedInput.aircraftCategory,
+    block_height: blockHeight,
+  });
+});
+
+stm.addStateTransition("update_aircraft", function* (data) {
+  const { parsedInput, signerAddress } = data;
+  yield* World.resolve(updateAircraft, {
+    id: parsedInput.aircraftId,
+    owner_signer_address: signerAddress!.toLowerCase(),
+    manufacturer: parsedInput.manufacturer,
+    model: parsedInput.model,
+    year: parsedInput.year,
+    aircraft_category: parsedInput.aircraftCategory,
+  });
+});
+
+stm.addStateTransition("deactivate_aircraft", function* (data) {
+  const { parsedInput, signerAddress } = data;
+  yield* World.resolve(deactivateAircraft, {
+    id: parsedInput.aircraftId,
     owner_signer_address: signerAddress!.toLowerCase(),
   });
 });
