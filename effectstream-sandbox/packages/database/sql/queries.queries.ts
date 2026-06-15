@@ -737,7 +737,7 @@ export interface IInsertTrainingRecordQuery {
   result: IInsertTrainingRecordResult;
 }
 
-const insertTrainingRecordIR: any = {"usedParamSet":{"student_signer_address":true,"instructor_signer_address":true,"flight_log_id":true,"training_type":true,"notes":true,"block_height":true},"params":[{"name":"student_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":107,"b":129}]},{"name":"instructor_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":131,"b":155}]},{"name":"flight_log_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":157,"b":170}]},{"name":"training_type","required":true,"transform":{"type":"scalar"},"locs":[{"a":185,"b":198}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":200,"b":206}]},{"name":"block_height","required":true,"transform":{"type":"scalar"},"locs":[{"a":208,"b":220}]}],"statement":"INSERT INTO training_record (student_signer_address, instructor_signer_address, flight_log_id, aircraft_id, training_type, notes, block_height)\nSELECT :student_signer_address!, :instructor_signer_address!, :flight_log_id!, fl.aircraft_id, :training_type!, :notes!, :block_height!\nFROM flight_log fl WHERE fl.id = :flight_log_id! AND fl.status = 'active'"};
+const insertTrainingRecordIR: any = {"usedParamSet":{"student_signer_address":true,"instructor_signer_address":true,"flight_log_id":true,"training_type":true,"notes":true,"block_height":true},"params":[{"name":"student_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":151,"b":174}]},{"name":"instructor_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":177,"b":203}]},{"name":"flight_log_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":206,"b":220},{"a":313,"b":327}]},{"name":"training_type","required":true,"transform":{"type":"scalar"},"locs":[{"a":239,"b":253}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":256,"b":262}]},{"name":"block_height","required":true,"transform":{"type":"scalar"},"locs":[{"a":265,"b":278}]}],"statement":"INSERT INTO training_record (student_signer_address, instructor_signer_address, flight_log_id, aircraft_id, training_type, notes, block_height)\nSELECT :student_signer_address!, :instructor_signer_address!, :flight_log_id!, fl.aircraft_id, :training_type!, :notes!, :block_height!\nFROM flight_log fl WHERE fl.id = :flight_log_id! AND fl.status = 'active'"};
 
 /**
  * Query generated from SQL:
@@ -768,7 +768,7 @@ export interface IUpdateTrainingRecordQuery {
   result: IUpdateTrainingRecordResult;
 }
 
-const updateTrainingRecordIR: any = {"usedParamSet":{"training_type":true,"notes":true,"id":true,"student_signer_address":true},"params":[{"name":"training_type","required":true,"transform":{"type":"scalar"},"locs":[{"a":36,"b":49}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":58,"b":64}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":97,"b":100}]},{"name":"student_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":126,"b":148}]}],"statement":"UPDATE training_record SET training_type = :training_type!, notes = :notes!, updated_at = NOW() WHERE id = :id! AND student_signer_address = :student_signer_address! AND status = 'active'"};
+const updateTrainingRecordIR: any = {"usedParamSet":{"training_type":true,"notes":true,"id":true,"student_signer_address":true},"params":[{"name":"training_type","required":true,"transform":{"type":"scalar"},"locs":[{"a":43,"b":57}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":68,"b":74}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":107,"b":110}]},{"name":"student_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":141,"b":164}]}],"statement":"UPDATE training_record SET training_type = :training_type!, notes = :notes!, updated_at = NOW() WHERE id = :id! AND student_signer_address = :student_signer_address! AND status = 'active'"};
 
 /**
  * Query generated from SQL:
@@ -796,7 +796,7 @@ export interface ICompleteTrainingRecordQuery {
   result: ICompleteTrainingRecordResult;
 }
 
-const completeTrainingRecordIR: any = {"usedParamSet":{"id":true,"student_signer_address":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":64,"b":67}]},{"name":"student_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":93,"b":115}]}],"statement":"UPDATE training_record SET status = 'completed', updated_at = NOW() WHERE id = :id! AND student_signer_address = :student_signer_address! AND status = 'active'"};
+const completeTrainingRecordIR: any = {"usedParamSet":{"id":true,"student_signer_address":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":79,"b":82}]},{"name":"student_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":113,"b":136}]}],"statement":"UPDATE training_record SET status = 'completed', updated_at = NOW() WHERE id = :id! AND student_signer_address = :student_signer_address! AND status = 'active'"};
 
 /**
  * Query generated from SQL:
@@ -870,7 +870,7 @@ export interface IGetTrainingRecordByIdQuery {
   result: IGetTrainingRecordByIdResult;
 }
 
-const getTrainingRecordByIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":33,"b":36}]}],"statement":"SELECT * FROM training_record WHERE id = :id!"};
+const getTrainingRecordByIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":41,"b":44}]}],"statement":"SELECT * FROM training_record WHERE id = :id!"};
 
 /**
  * Query generated from SQL:
@@ -907,7 +907,7 @@ export interface IGetTrainingRecordsBySignerQuery {
   result: IGetTrainingRecordsBySignerResult;
 }
 
-const getTrainingRecordsBySignerIR: any = {"usedParamSet":{"student_signer_address":true},"params":[{"name":"student_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":55,"b":77}]}],"statement":"SELECT * FROM training_record WHERE student_signer_address = :student_signer_address! ORDER BY id DESC LIMIT 100"};
+const getTrainingRecordsBySignerIR: any = {"usedParamSet":{"student_signer_address":true},"params":[{"name":"student_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":61,"b":84}]}],"statement":"SELECT * FROM training_record WHERE student_signer_address = :student_signer_address! ORDER BY id DESC LIMIT 100"};
 
 /**
  * Query generated from SQL:
@@ -944,7 +944,7 @@ export interface IGetTrainingRecordsByFlightQuery {
   result: IGetTrainingRecordsByFlightResult;
 }
 
-const getTrainingRecordsByFlightIR: any = {"usedParamSet":{"flight_log_id":true},"params":[{"name":"flight_log_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":46,"b":59}]}],"statement":"SELECT * FROM training_record WHERE flight_log_id = :flight_log_id! ORDER BY id DESC LIMIT 100"};
+const getTrainingRecordsByFlightIR: any = {"usedParamSet":{"flight_log_id":true},"params":[{"name":"flight_log_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":52,"b":66}]}],"statement":"SELECT * FROM training_record WHERE flight_log_id = :flight_log_id! ORDER BY id DESC LIMIT 100"};
 
 /**
  * Query generated from SQL:

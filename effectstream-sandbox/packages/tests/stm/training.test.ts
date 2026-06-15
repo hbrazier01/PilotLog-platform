@@ -222,6 +222,57 @@ export async function trainingTest(db: Client) {
     (_res) => true,
   );
 
+  // ── 8b. Flight validation: voided (inactive) flight produces no row ────────────
+  // First, log a fresh flight then void it
+  await submit(wallet0, [
+    "log_flight",
+    testAircraftId,
+    "2024-06-02",
+    "KSQL",
+    "KRHV",
+    0.5, 0.5, 0.0, 0.0, 0.0,
+    "Flight for void test — to verify inactive flight rejected by training create",
+  ]);
+
+  let voidedFlightId: number | null = null;
+  await assertSQL(
+    "setup: flight for inactive-flight validation test logged",
+    db,
+    `SELECT * FROM flight_log WHERE owner_signer_address = '${wallet0.address.toLowerCase()}' AND departure_airport = 'KSQL' ORDER BY id DESC LIMIT 1`,
+    (res) => res.rows.length >= 1,
+    (res) => { voidedFlightId = res.rows[0].id; return res.rows[0].status === "active"; },
+  );
+
+  if (voidedFlightId !== null) {
+    // Void the flight
+    await submit(wallet0, ["void_flight", voidedFlightId]);
+    await assertSQL(
+      "setup: flight voided for inactive-flight validation",
+      db,
+      `SELECT * FROM flight_log WHERE id = ${voidedFlightId}`,
+      (res) => res.rows.length === 1 && res.rows[0].status === "voided",
+      (res) => res.rows[0].status === "voided",
+    );
+
+    // Attempt training record against voided flight
+    await submit(wallet0, [
+      "create_training_record",
+      wallet1.address,
+      voidedFlightId,
+      "Night Training",
+      "Should not insert — flight is voided (inactive)",
+    ]);
+
+    await new Promise((r) => setTimeout(r, 3000));
+    await assertSQL(
+      "flight validation: create_training_record with voided flight inserts no row (inactive flight rejected)",
+      db,
+      `SELECT * FROM training_record WHERE flight_log_id = ${voidedFlightId}`,
+      (res) => res.rows.length === 0,
+      (_res) => true,
+    );
+  }
+
   // ── 9. Training type validation: invalid type produces no row ────────────────
   await submit(wallet0, [
     "create_training_record",
@@ -255,7 +306,7 @@ export async function trainingTest(db: Client) {
       "update_training_record: owner can update training type and notes",
       db,
       `SELECT * FROM training_record WHERE id = ${trainingId}`,
-      (res) => res.rows.length === 1,
+      (res) => res.rows.length === 1 && res.rows[0].training_type === "Solo Preparation",
       (res) => res.rows[0].training_type === "Solo Preparation",
     );
 
@@ -317,7 +368,7 @@ export async function trainingTest(db: Client) {
       "complete_training_record: student owner can complete, status=completed",
       db,
       `SELECT * FROM training_record WHERE id = ${completeTrainingId}`,
-      (res) => res.rows.length === 1,
+      (res) => res.rows.length === 1 && res.rows[0].status === "completed",
       (res) => res.rows[0].status === "completed",
     );
 
