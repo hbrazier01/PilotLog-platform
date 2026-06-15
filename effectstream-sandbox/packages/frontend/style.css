@@ -436,6 +436,54 @@ select {
     margin: 1rem 0;
 }
 
+/* ── Context preview (workflow selectors) ────────────────────────────────── */
+.context-preview {
+    margin-top: 0.3rem;
+    min-height: 1.2rem;
+}
+
+.context-preview .preview-label {
+    display: inline-block;
+    font-size: 0.78rem;
+    color: var(--accent-hover);
+    background: var(--accent-light);
+    border-radius: 4px;
+    padding: 0.15rem 0.5rem;
+}
+
+/* ── Data item actions (relationship navigation) ─────────────────────────── */
+.data-item-actions {
+    margin-top: 0.4rem;
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+}
+
+.btn-outline:hover {
+    background: var(--accent-light);
+}
+
+/* ── Filter notice ───────────────────────────────────────────────────────── */
+.filter-notice {
+    font-size: 0.82rem;
+    color: var(--accent-hover);
+    background: var(--accent-light);
+    border-radius: 4px;
+    padding: 0.3rem 0.6rem;
+    margin-bottom: 0.5rem;
+}
+
+.filter-notice a {
+    color: var(--accent-hover);
+    font-weight: 600;
+}
+
 /* ── Responsive ───────────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
     .header-inner { flex-wrap: wrap; height: auto; padding: 0.6rem 1rem; }

@@ -160,8 +160,11 @@
                     <div class="card-body">
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Aircraft ID</label>
-                                <input id="fl-aircraft-id" type="number" placeholder="Aircraft ID" />
+                                <label>Aircraft <button class="btn btn-sm btn-secondary" onclick="populateAircraftSelector()">&#8635;</button></label>
+                                <select id="fl-aircraft-select">
+                                    <option value="">Select Aircraft</option>
+                                </select>
+                                <div id="fl-aircraft-preview" class="context-preview"></div>
                             </div>
                             <div class="form-group">
                                 <label>Date</label>
@@ -298,8 +301,11 @@
                             <input id="tr-instructor" type="text" placeholder="0x..." />
                         </div>
                         <div class="form-group">
-                            <label>Flight Log ID</label>
-                            <input id="tr-flight-id" type="number" placeholder="Flight Log ID" />
+                            <label>Flight <button class="btn btn-sm btn-secondary" onclick="populateFlightSelector()">&#8635;</button></label>
+                            <select id="tr-flight-select">
+                                <option value="">Select Flight</option>
+                            </select>
+                            <div id="tr-flight-preview" class="context-preview"></div>
                         </div>
                         <div class="form-group">
                             <label>Training Type</label>
@@ -381,8 +387,11 @@
                     <div class="card-header">Request Endorsement</div>
                     <div class="card-body">
                         <div class="form-group">
-                            <label>Training Record ID</label>
-                            <input id="en-training-id" type="number" placeholder="Training Record ID" />
+                            <label>Training Record <button class="btn btn-sm btn-secondary" onclick="populateTrainingSelector()">&#8635;</button></label>
+                            <select id="en-training-select">
+                                <option value="">Select Training Record</option>
+                            </select>
+                            <div id="en-training-preview" class="context-preview"></div>
                         </div>
                         <div class="form-group">
                             <label>Endorsement Type</label>
@@ -534,8 +543,118 @@
                 document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
                 btn.classList.add("active");
                 document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+                if (btn.dataset.tab === "flights") populateAircraftSelector();
+                if (btn.dataset.tab === "training") populateFlightSelector();
+                if (btn.dataset.tab === "endorsements") populateTrainingSelector();
             });
         });
+
+        // Cached data for selector previews
+        let _cachedAircraft = [];
+        let _cachedFlights = [];
+        let _cachedTraining = [];
+        let _aircraftFilter = null;
+
+        function switchTab(tabName) {
+            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+            const btn = document.querySelector(`[data-tab="${tabName}"]`);
+            if (btn) btn.classList.add("active");
+            const pane = document.getElementById("tab-" + tabName);
+            if (pane) pane.classList.add("active");
+        }
+
+        async function populateAircraftSelector() {
+            const data = await fetch(`${API}/api/aircraft`).then(r => r.json());
+            _cachedAircraft = data.aircraft || [];
+            const select = document.getElementById("fl-aircraft-select");
+            const current = select.value;
+            select.innerHTML = '<option value="">Select Aircraft</option>';
+            _cachedAircraft.forEach(a => {
+                const opt = document.createElement("option");
+                opt.value = a.id;
+                opt.text = `${a.tail_number} — ${a.manufacturer} ${a.model} (${a.year})`;
+                select.appendChild(opt);
+            });
+            if (current) select.value = current;
+        }
+
+        async function populateFlightSelector() {
+            const data = await fetch(`${API}/api/flights`).then(r => r.json());
+            _cachedFlights = (data.flights || []).filter(f => f.status !== "void");
+            const select = document.getElementById("tr-flight-select");
+            const current = select.value;
+            select.innerHTML = '<option value="">Select Flight</option>';
+            _cachedFlights.forEach(f => {
+                const opt = document.createElement("option");
+                opt.value = f.id;
+                opt.text = `#${f.id} — ${new Date(f.flight_date).toLocaleDateString()} ${f.departure_airport}→${f.arrival_airport}`;
+                select.appendChild(opt);
+            });
+            if (current) select.value = current;
+        }
+
+        async function populateTrainingSelector() {
+            const data = await fetch(`${API}/api/training-records`).then(r => r.json());
+            _cachedTraining = data.trainingRecords || [];
+            const select = document.getElementById("en-training-select");
+            const current = select.value;
+            select.innerHTML = '<option value="">Select Training Record</option>';
+            _cachedTraining.forEach(r => {
+                const opt = document.createElement("option");
+                opt.value = r.id;
+                opt.text = `#${r.id} — ${r.training_type} (${r.status})`;
+                select.appendChild(opt);
+            });
+            if (current) select.value = current;
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("fl-aircraft-select").addEventListener("change", function () {
+                const id = parseInt(this.value, 10);
+                const preview = document.getElementById("fl-aircraft-preview");
+                if (!id) { preview.innerHTML = ""; return; }
+                const ac = _cachedAircraft.find(a => a.id === id);
+                if (ac) preview.innerHTML = `<span class="preview-label">${ac.tail_number} &middot; ${ac.manufacturer} ${ac.model} &middot; ${ac.aircraft_category}</span>`;
+            });
+            document.getElementById("tr-flight-select").addEventListener("change", function () {
+                const id = parseInt(this.value, 10);
+                const preview = document.getElementById("tr-flight-preview");
+                if (!id) { preview.innerHTML = ""; return; }
+                const f = _cachedFlights.find(x => x.id === id);
+                if (f) preview.innerHTML = `<span class="preview-label">${new Date(f.flight_date).toLocaleDateString()} &middot; ${f.departure_airport}&rarr;${f.arrival_airport} &middot; Aircraft #${f.aircraft_id} &middot; ${f.total_time}h total</span>`;
+            });
+            document.getElementById("en-training-select").addEventListener("change", function () {
+                const id = parseInt(this.value, 10);
+                const preview = document.getElementById("en-training-preview");
+                if (!id) { preview.innerHTML = ""; return; }
+                const r = _cachedTraining.find(x => x.id === id);
+                if (r) preview.innerHTML = `<span class="preview-label">${r.training_type} &middot; Flight #${r.flight_log_id} &middot; Aircraft #${r.aircraft_id}</span>`;
+            });
+        });
+
+        function showFlightsForAircraft(aircraftId) {
+            _aircraftFilter = aircraftId;
+            switchTab("flights");
+            populateAircraftSelector();
+            fetchFlights();
+        }
+
+        function createTrainingFromFlight(flightId) {
+            switchTab("training");
+            populateFlightSelector().then(() => {
+                document.getElementById("tr-flight-select").value = flightId;
+                document.getElementById("tr-flight-select").dispatchEvent(new Event("change"));
+            });
+        }
+
+        function createEndorsementFromTraining(trainingId) {
+            switchTab("endorsements");
+            populateTrainingSelector().then(() => {
+                document.getElementById("en-training-select").value = trainingId;
+                document.getElementById("en-training-select").dispatchEvent(new Event("change"));
+            });
+        }
 
         async function fetchProfiles() {
             const data = await fetch(`${API}/api/profiles`).then(r => r.json());
@@ -735,6 +854,9 @@
                 <div class="data-item">
                     <div class="data-item-title">${a.tail_number} &mdash; ${a.manufacturer} ${a.model} (${a.year}) <span class="badge">${a.aircraft_category}</span></div>
                     <div class="data-item-meta">Owner: ${a.owner_signer_address} &middot; Status: ${a.status} &middot; ID: ${a.id}</div>
+                    <div class="data-item-actions">
+                        <button class="btn btn-sm btn-outline" onclick="showFlightsForAircraft(${a.id})">View Flights &rarr;</button>
+                    </div>
                 </div>
             `).join("");
         }
@@ -802,22 +924,40 @@
         async function fetchFlights() {
             const data = await fetch(`${API}/api/flights`).then(r => r.json());
             const container = document.getElementById("fl-display");
-            if (!data.flights || data.flights.length === 0) {
-                container.innerHTML = "<p class='empty-state'>No flights logged.</p>";
+            let flights = data.flights || [];
+            if (_aircraftFilter !== null) {
+                flights = flights.filter(f => f.aircraft_id === _aircraftFilter);
+            }
+            if (flights.length === 0) {
+                const filterNote = _aircraftFilter !== null ? ` for Aircraft #${_aircraftFilter}` : "";
+                container.innerHTML = `<p class='empty-state'>No flights logged${filterNote}. ${_aircraftFilter !== null ? '<a href="#" onclick="clearAircraftFilter(); return false;">Show all</a>' : ""}</p>`;
                 return;
             }
-            container.innerHTML = data.flights.map(f => `
+            if (_aircraftFilter !== null) {
+                container.innerHTML = `<p class="filter-notice">Showing flights for Aircraft #${_aircraftFilter} &mdash; <a href="#" onclick="clearAircraftFilter(); return false;">Show all</a></p>`;
+            } else {
+                container.innerHTML = "";
+            }
+            container.innerHTML += flights.map(f => `
                 <div class="data-item">
                     <div class="data-item-title">${new Date(f.flight_date).toLocaleDateString()} &mdash; ${f.departure_airport} &rarr; ${f.arrival_airport} <span class="badge badge-status">${f.status}</span></div>
                     <div class="data-item-meta">Aircraft ID: ${f.aircraft_id} &middot; Total: ${f.total_time}h &middot; PIC: ${f.pic_time}h &middot; Dual: ${f.dual_received_time}h &middot; Night: ${f.night_time}h &middot; Inst: ${f.instrument_time}h</div>
                     <div class="data-item-meta">ID: ${f.id} &middot; Owner: ${f.owner_signer_address}</div>
                     ${f.notes ? `<div class="data-item-notes">${f.notes}</div>` : ""}
+                    <div class="data-item-actions">
+                        <button class="btn btn-sm btn-outline" onclick="createTrainingFromFlight(${f.id})">+ Training Record</button>
+                    </div>
                 </div>
             `).join("");
         }
 
+        function clearAircraftFilter() {
+            _aircraftFilter = null;
+            fetchFlights();
+        }
+
         async function logFlight() {
-            const aircraftId = parseInt(document.getElementById("fl-aircraft-id").value, 10);
+            const aircraftId = parseInt(document.getElementById("fl-aircraft-select").value, 10);
             const date = document.getElementById("fl-date").value;
             const departure = document.getElementById("fl-departure").value;
             const arrival = document.getElementById("fl-arrival").value;
@@ -895,7 +1035,7 @@
 
         async function createTrainingRecord() {
             const instructor = document.getElementById("tr-instructor").value;
-            const flightId = parseInt(document.getElementById("tr-flight-id").value, 10);
+            const flightId = parseInt(document.getElementById("tr-flight-select").value, 10);
             const trainingType = document.getElementById("tr-type").value;
             const notes = document.getElementById("tr-notes").value || "";
             const result_el = document.getElementById("tr-create-result");
@@ -966,12 +1106,15 @@
                     <div class="data-item-meta">Instructor: ${r.instructor_signer_address} &middot; Flight ID: ${r.flight_log_id} &middot; Aircraft ID: ${r.aircraft_id}</div>
                     <div class="data-item-meta">${new Date(r.created_at).toLocaleString()}</div>
                     ${r.notes ? `<div class="data-item-notes">${r.notes}</div>` : ""}
+                    <div class="data-item-actions">
+                        <button class="btn btn-sm btn-outline" onclick="createEndorsementFromTraining(${r.id})">+ Endorsement</button>
+                    </div>
                 </div>
             `).join("");
         }
 
         async function createEndorsement() {
-            const trainingId = parseInt(document.getElementById("en-training-id").value, 10);
+            const trainingId = parseInt(document.getElementById("en-training-select").value, 10);
             const endorsementType = document.getElementById("en-type").value;
             const notes = document.getElementById("en-notes").value || "";
             const result_el = document.getElementById("en-create-result");
