@@ -57,3 +57,27 @@ SELECT * FROM aircraft WHERE id = :id!;
 
 /* @name getAircraftBySigner */
 SELECT * FROM aircraft WHERE owner_signer_address = :owner_signer_address! AND status = 'active' ORDER BY id DESC LIMIT 100;
+
+-- ── Flight Log (AIR-353) ───────────────────────────────────────────────────────
+
+/* @name insertFlightLog */
+INSERT INTO flight_log (owner_signer_address, aircraft_id, flight_date, departure_airport, arrival_airport, total_time, pic_time, dual_received_time, night_time, instrument_time, notes, block_height)
+VALUES (:owner_signer_address!, :aircraft_id!, :flight_date!, :departure_airport!, :arrival_airport!, :total_time!, :pic_time!, :dual_received_time!, :night_time!, :instrument_time!, :notes!, :block_height!);
+
+/* @name updateFlightLog */
+UPDATE flight_log SET aircraft_id = :aircraft_id!, flight_date = :flight_date!, departure_airport = :departure_airport!, arrival_airport = :arrival_airport!, total_time = :total_time!, pic_time = :pic_time!, dual_received_time = :dual_received_time!, night_time = :night_time!, instrument_time = :instrument_time!, notes = :notes!, updated_at = NOW() WHERE id = :id! AND owner_signer_address = :owner_signer_address! AND status = 'active';
+
+/* @name voidFlightLog */
+UPDATE flight_log SET status = 'voided', updated_at = NOW() WHERE id = :id! AND owner_signer_address = :owner_signer_address! AND status = 'active';
+
+/* @name getAllFlights */
+SELECT * FROM flight_log WHERE status = 'active' ORDER BY id DESC LIMIT 100;
+
+/* @name getFlightById */
+SELECT * FROM flight_log WHERE id = :id!;
+
+/* @name getFlightsBySigner */
+SELECT * FROM flight_log WHERE owner_signer_address = :owner_signer_address! ORDER BY id DESC LIMIT 100;
+
+/* @name getFlightsByAircraft */
+SELECT * FROM flight_log WHERE aircraft_id = :aircraft_id! AND status = 'active' ORDER BY id DESC LIMIT 100;

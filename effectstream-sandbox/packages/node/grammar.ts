@@ -45,4 +45,32 @@ export const grammar = {
   deactivate_aircraft: [
     ["aircraftId", Type.Integer({ minimum: 1 })],
   ],
+  log_flight: [
+    ["aircraftId", Type.Integer({ minimum: 1 })],
+    ["date", Type.String({ maxLength: 16 })],
+    ["departureAirport", Type.String({ maxLength: 10 })],
+    ["arrivalAirport", Type.String({ maxLength: 10 })],
+    ["totalTime", Type.Number({ minimum: 0, maximum: 999 })],
+    ["picTime", Type.Number({ minimum: 0, maximum: 999 })],
+    ["dualReceivedTime", Type.Number({ minimum: 0, maximum: 999 })],
+    ["nightTime", Type.Number({ minimum: 0, maximum: 999 })],
+    ["instrumentTime", Type.Number({ minimum: 0, maximum: 999 })],
+    ["notes", Type.String({ maxLength: 1024 })],
+  ],
+  update_flight: [
+    ["flightId", Type.Integer({ minimum: 1 })],
+    ["aircraftId", Type.Integer({ minimum: 1 })],
+    ["date", Type.String({ maxLength: 16 })],
+    ["departureAirport", Type.String({ maxLength: 10 })],
+    ["arrivalAirport", Type.String({ maxLength: 10 })],
+    ["totalTime", Type.Number({ minimum: 0, maximum: 999 })],
+    ["picTime", Type.Number({ minimum: 0, maximum: 999 })],
+    ["dualReceivedTime", Type.Number({ minimum: 0, maximum: 999 })],
+    ["nightTime", Type.Number({ minimum: 0, maximum: 999 })],
+    ["instrumentTime", Type.Number({ minimum: 0, maximum: 999 })],
+    ["notes", Type.String({ maxLength: 1024 })],
+  ],
+  void_flight: [
+    ["flightId", Type.Integer({ minimum: 1 })],
+  ],
 } as const satisfies GrammarDefinition;

@@ -140,6 +140,10 @@ async function test() {
     const { aircraftTest } = await import("./stm/aircraft.test.ts");
     await aircraftTest(db);
 
+    console.log("\n--- Phase G: Flight Log Foundation (AIR-353) ---\n");
+    const { flightsTest } = await import("./stm/flights.test.ts");
+    await flightsTest(db);
+
     printSummary();
   } catch (e) {
     printSummary();

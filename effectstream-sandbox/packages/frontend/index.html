@@ -97,6 +97,47 @@
         <h3>Active Aircraft (GET /api/aircraft)</h3>
         <button onclick="fetchAircraft()">Refresh</button>
         <div id="ac-display"></div>
+
+        <hr />
+        <h2>Flight Log</h2>
+
+        <h3>Log a Flight</h3>
+        <input id="fl-aircraft-id" type="number" placeholder="Aircraft ID" />
+        <input id="fl-date" type="date" placeholder="Date" />
+        <input id="fl-departure" type="text" placeholder="Departure Airport (e.g. KSFO)" />
+        <input id="fl-arrival" type="text" placeholder="Arrival Airport (e.g. KLAX)" />
+        <input id="fl-total" type="number" step="0.1" placeholder="Total Time (hrs)" />
+        <input id="fl-pic" type="number" step="0.1" placeholder="PIC Time (hrs)" />
+        <input id="fl-dual" type="number" step="0.1" placeholder="Dual Received (hrs)" />
+        <input id="fl-night" type="number" step="0.1" placeholder="Night Time (hrs)" />
+        <input id="fl-instrument" type="number" step="0.1" placeholder="Instrument Time (hrs)" />
+        <input id="fl-notes" type="text" placeholder="Notes (optional)" />
+        <button onclick="logFlight()">Log Flight</button>
+        <div id="fl-create-result"></div>
+
+        <h3>Update Flight</h3>
+        <input id="fl-update-id" type="number" placeholder="Flight ID" />
+        <input id="fl-update-aircraft-id" type="number" placeholder="Aircraft ID" />
+        <input id="fl-update-date" type="date" placeholder="Date" />
+        <input id="fl-update-departure" type="text" placeholder="Departure Airport" />
+        <input id="fl-update-arrival" type="text" placeholder="Arrival Airport" />
+        <input id="fl-update-total" type="number" step="0.1" placeholder="Total Time (hrs)" />
+        <input id="fl-update-pic" type="number" step="0.1" placeholder="PIC Time (hrs)" />
+        <input id="fl-update-dual" type="number" step="0.1" placeholder="Dual Received (hrs)" />
+        <input id="fl-update-night" type="number" step="0.1" placeholder="Night Time (hrs)" />
+        <input id="fl-update-instrument" type="number" step="0.1" placeholder="Instrument Time (hrs)" />
+        <input id="fl-update-notes" type="text" placeholder="Notes (optional)" />
+        <button onclick="updateFlightAction()">Update Flight</button>
+        <div id="fl-update-result"></div>
+
+        <h3>Void Flight</h3>
+        <input id="fl-void-id" type="number" placeholder="Flight ID" />
+        <button onclick="voidFlightAction()">Void Flight</button>
+        <div id="fl-void-result"></div>
+
+        <h3>Flight Log (GET /api/flights)</h3>
+        <button onclick="fetchFlights()">Refresh</button>
+        <div id="fl-display"></div>
     </div>
 </body>
 
@@ -322,6 +363,90 @@
             await fetchAircraft();
         } catch (err) {
             document.getElementById("ac-deactivate-result").innerText = "Error: " + err.message;
+        }
+    }
+
+    async function fetchFlights() {
+        const data = await fetch(`${API}/api/flights`).then(r => r.json());
+        const container = document.getElementById("fl-display");
+        if (!data.flights || data.flights.length === 0) {
+            container.innerHTML = "<p>No flights logged.</p>";
+            return;
+        }
+        container.innerHTML = data.flights.map(f => `
+            <div style="border:1px solid #ccc; padding:8px; margin:8px 0; border-radius:4px;">
+                <strong>${new Date(f.flight_date).toLocaleDateString()}</strong> — Aircraft ID: ${f.aircraft_id}<br/>
+                <strong>${f.departure_airport} → ${f.arrival_airport}</strong><br/>
+                Total: ${f.total_time}h | PIC: ${f.pic_time}h | Dual: ${f.dual_received_time}h | Night: ${f.night_time}h | Instrument: ${f.instrument_time}h<br/>
+                <small>Owner: ${f.owner_signer_address}</small><br/>
+                <small>Status: ${f.status} | ID: ${f.id}</small><br/>
+                ${f.notes ? `<em>${f.notes}</em>` : ""}
+            </div>
+        `).join("");
+    }
+
+    async function logFlight() {
+        const aircraftId = parseInt(document.getElementById("fl-aircraft-id").value, 10);
+        const date = document.getElementById("fl-date").value;
+        const departure = document.getElementById("fl-departure").value;
+        const arrival = document.getElementById("fl-arrival").value;
+        const totalTime = parseFloat(document.getElementById("fl-total").value) || 0;
+        const picTime = parseFloat(document.getElementById("fl-pic").value) || 0;
+        const dualTime = parseFloat(document.getElementById("fl-dual").value) || 0;
+        const nightTime = parseFloat(document.getElementById("fl-night").value) || 0;
+        const instrumentTime = parseFloat(document.getElementById("fl-instrument").value) || 0;
+        const notes = document.getElementById("fl-notes").value || "";
+        document.getElementById("fl-create-result").innerText = "Submitting...";
+        try {
+            const result = await effectstream.sendAction([
+                "log_flight", aircraftId, date, departure, arrival,
+                totalTime, picTime, dualTime, nightTime, instrumentTime, notes
+            ]);
+            console.log("[tx-debug] log_flight:", result);
+            document.getElementById("fl-create-result").innerText = "Flight logged! " + JSON.stringify(result, null, 2);
+            await fetchFlights();
+        } catch (err) {
+            document.getElementById("fl-create-result").innerText = "Error: " + err.message;
+            console.error(err);
+        }
+    }
+
+    async function updateFlightAction() {
+        const flightId = parseInt(document.getElementById("fl-update-id").value, 10);
+        const aircraftId = parseInt(document.getElementById("fl-update-aircraft-id").value, 10);
+        const date = document.getElementById("fl-update-date").value;
+        const departure = document.getElementById("fl-update-departure").value;
+        const arrival = document.getElementById("fl-update-arrival").value;
+        const totalTime = parseFloat(document.getElementById("fl-update-total").value) || 0;
+        const picTime = parseFloat(document.getElementById("fl-update-pic").value) || 0;
+        const dualTime = parseFloat(document.getElementById("fl-update-dual").value) || 0;
+        const nightTime = parseFloat(document.getElementById("fl-update-night").value) || 0;
+        const instrumentTime = parseFloat(document.getElementById("fl-update-instrument").value) || 0;
+        const notes = document.getElementById("fl-update-notes").value || "";
+        document.getElementById("fl-update-result").innerText = "Submitting...";
+        try {
+            const result = await effectstream.sendAction([
+                "update_flight", flightId, aircraftId, date, departure, arrival,
+                totalTime, picTime, dualTime, nightTime, instrumentTime, notes
+            ]);
+            console.log("[tx-debug] update_flight:", result);
+            document.getElementById("fl-update-result").innerText = "Updated! " + JSON.stringify(result, null, 2);
+            await fetchFlights();
+        } catch (err) {
+            document.getElementById("fl-update-result").innerText = "Error: " + err.message;
+        }
+    }
+
+    async function voidFlightAction() {
+        const id = parseInt(document.getElementById("fl-void-id").value, 10);
+        document.getElementById("fl-void-result").innerText = "Submitting...";
+        try {
+            const result = await effectstream.sendAction(["void_flight", id]);
+            console.log("[tx-debug] void_flight:", result);
+            document.getElementById("fl-void-result").innerText = "Voided! " + JSON.stringify(result, null, 2);
+            await fetchFlights();
+        } catch (err) {
+            document.getElementById("fl-void-result").innerText = "Error: " + err.message;
         }
     }
 </script>

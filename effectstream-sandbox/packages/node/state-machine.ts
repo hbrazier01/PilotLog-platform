@@ -13,6 +13,9 @@ import {
   insertAircraft,
   updateAircraft,
   deactivateAircraft,
+  insertFlightLog,
+  updateFlightLog,
+  voidFlightLog,
 } from "@pilotlog-sandbox/database";
 import { grammar } from "./grammar.ts";
 
@@ -111,6 +114,50 @@ stm.addStateTransition("deactivate_aircraft", function* (data) {
   const { parsedInput, signerAddress } = data;
   yield* World.resolve(deactivateAircraft, {
     id: parsedInput.aircraftId,
+    owner_signer_address: signerAddress!.toLowerCase(),
+  });
+});
+
+stm.addStateTransition("log_flight", function* (data) {
+  const { parsedInput, signerAddress, blockHeight } = data;
+  yield* World.resolve(insertFlightLog, {
+    owner_signer_address: signerAddress!.toLowerCase(),
+    aircraft_id: parsedInput.aircraftId,
+    flight_date: parsedInput.date,
+    departure_airport: parsedInput.departureAirport,
+    arrival_airport: parsedInput.arrivalAirport,
+    total_time: parsedInput.totalTime,
+    pic_time: parsedInput.picTime,
+    dual_received_time: parsedInput.dualReceivedTime,
+    night_time: parsedInput.nightTime,
+    instrument_time: parsedInput.instrumentTime,
+    notes: parsedInput.notes ?? "",
+    block_height: blockHeight,
+  });
+});
+
+stm.addStateTransition("update_flight", function* (data) {
+  const { parsedInput, signerAddress } = data;
+  yield* World.resolve(updateFlightLog, {
+    id: parsedInput.flightId,
+    owner_signer_address: signerAddress!.toLowerCase(),
+    aircraft_id: parsedInput.aircraftId,
+    flight_date: parsedInput.date,
+    departure_airport: parsedInput.departureAirport,
+    arrival_airport: parsedInput.arrivalAirport,
+    total_time: parsedInput.totalTime,
+    pic_time: parsedInput.picTime,
+    dual_received_time: parsedInput.dualReceivedTime,
+    night_time: parsedInput.nightTime,
+    instrument_time: parsedInput.instrumentTime,
+    notes: parsedInput.notes ?? "",
+  });
+});
+
+stm.addStateTransition("void_flight", function* (data) {
+  const { parsedInput, signerAddress } = data;
+  yield* World.resolve(voidFlightLog, {
+    id: parsedInput.flightId,
     owner_signer_address: signerAddress!.toLowerCase(),
   });
 });

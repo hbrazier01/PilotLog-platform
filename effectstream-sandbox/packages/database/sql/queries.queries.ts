@@ -446,3 +446,270 @@ export interface IGetAircraftBySignerQuery {
 const getAircraftBySignerIR: any = {"usedParamSet":{"owner_signer_address":true},"params":[{"name":"owner_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":52,"b":73}]}],"statement":"SELECT * FROM aircraft WHERE owner_signer_address = :owner_signer_address! AND status = 'active' ORDER BY id DESC LIMIT 100"};
 
 export const getAircraftBySigner = new PreparedQuery<IGetAircraftBySignerParams,IGetAircraftBySignerResult>(getAircraftBySignerIR);
+
+
+// ── Flight Log (AIR-353) ───────────────────────────────────────────────────────
+
+/** 'InsertFlightLog' parameters type */
+export interface IInsertFlightLogParams {
+  owner_signer_address: string;
+  aircraft_id: number;
+  flight_date: string;
+  departure_airport: string;
+  arrival_airport: string;
+  total_time: number;
+  pic_time: number;
+  dual_received_time: number;
+  night_time: number;
+  instrument_time: number;
+  notes: string;
+  block_height: number;
+}
+
+/** 'InsertFlightLog' return type */
+export type IInsertFlightLogResult = void;
+
+/** 'InsertFlightLog' query type */
+export interface IInsertFlightLogQuery {
+  params: IInsertFlightLogParams;
+  result: IInsertFlightLogResult;
+}
+
+const insertFlightLogIR: any = {"usedParamSet":{"owner_signer_address":true,"aircraft_id":true,"flight_date":true,"departure_airport":true,"arrival_airport":true,"total_time":true,"pic_time":true,"dual_received_time":true,"night_time":true,"instrument_time":true,"notes":true,"block_height":true},"params":[{"name":"owner_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":208,"b":229}]},{"name":"aircraft_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":232,"b":244}]},{"name":"flight_date","required":true,"transform":{"type":"scalar"},"locs":[{"a":247,"b":259}]},{"name":"departure_airport","required":true,"transform":{"type":"scalar"},"locs":[{"a":262,"b":280}]},{"name":"arrival_airport","required":true,"transform":{"type":"scalar"},"locs":[{"a":283,"b":299}]},{"name":"total_time","required":true,"transform":{"type":"scalar"},"locs":[{"a":302,"b":313}]},{"name":"pic_time","required":true,"transform":{"type":"scalar"},"locs":[{"a":316,"b":325}]},{"name":"dual_received_time","required":true,"transform":{"type":"scalar"},"locs":[{"a":328,"b":347}]},{"name":"night_time","required":true,"transform":{"type":"scalar"},"locs":[{"a":350,"b":361}]},{"name":"instrument_time","required":true,"transform":{"type":"scalar"},"locs":[{"a":364,"b":380}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":383,"b":389}]},{"name":"block_height","required":true,"transform":{"type":"scalar"},"locs":[{"a":392,"b":405}]}],"statement":"INSERT INTO flight_log (owner_signer_address, aircraft_id, flight_date, departure_airport, arrival_airport, total_time, pic_time, dual_received_time, night_time, instrument_time, notes, block_height)\nVALUES (:owner_signer_address!, :aircraft_id!, :flight_date!, :departure_airport!, :arrival_airport!, :total_time!, :pic_time!, :dual_received_time!, :night_time!, :instrument_time!, :notes!, :block_height!)"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO flight_log (owner_signer_address, aircraft_id, flight_date, departure_airport, arrival_airport, total_time, pic_time, dual_received_time, night_time, instrument_time, notes, block_height)
+ * VALUES (:owner_signer_address!, :aircraft_id!, :flight_date!, :departure_airport!, :arrival_airport!, :total_time!, :pic_time!, :dual_received_time!, :night_time!, :instrument_time!, :notes!, :block_height!)
+ * ```
+ */
+export const insertFlightLog = new PreparedQuery<IInsertFlightLogParams,IInsertFlightLogResult>(insertFlightLogIR);
+
+
+/** 'UpdateFlightLog' parameters type */
+export interface IUpdateFlightLogParams {
+  aircraft_id: number;
+  flight_date: string;
+  departure_airport: string;
+  arrival_airport: string;
+  total_time: number;
+  pic_time: number;
+  dual_received_time: number;
+  night_time: number;
+  instrument_time: number;
+  notes: string;
+  id: number;
+  owner_signer_address: string;
+}
+
+/** 'UpdateFlightLog' return type */
+export type IUpdateFlightLogResult = void;
+
+/** 'UpdateFlightLog' query type */
+export interface IUpdateFlightLogQuery {
+  params: IUpdateFlightLogParams;
+  result: IUpdateFlightLogResult;
+}
+
+const updateFlightLogIR: any = {"usedParamSet":{"aircraft_id":true,"flight_date":true,"departure_airport":true,"arrival_airport":true,"total_time":true,"pic_time":true,"dual_received_time":true,"night_time":true,"instrument_time":true,"notes":true,"id":true,"owner_signer_address":true},"params":[{"name":"aircraft_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":36,"b":48}]},{"name":"flight_date","required":true,"transform":{"type":"scalar"},"locs":[{"a":65,"b":77}]},{"name":"departure_airport","required":true,"transform":{"type":"scalar"},"locs":[{"a":100,"b":118}]},{"name":"arrival_airport","required":true,"transform":{"type":"scalar"},"locs":[{"a":139,"b":155}]},{"name":"total_time","required":true,"transform":{"type":"scalar"},"locs":[{"a":171,"b":182}]},{"name":"pic_time","required":true,"transform":{"type":"scalar"},"locs":[{"a":196,"b":205}]},{"name":"dual_received_time","required":true,"transform":{"type":"scalar"},"locs":[{"a":229,"b":248}]},{"name":"night_time","required":true,"transform":{"type":"scalar"},"locs":[{"a":264,"b":275}]},{"name":"instrument_time","required":true,"transform":{"type":"scalar"},"locs":[{"a":296,"b":312}]},{"name":"notes","required":true,"transform":{"type":"scalar"},"locs":[{"a":323,"b":329}]},{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":362,"b":365}]},{"name":"owner_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":394,"b":415}]}],"statement":"UPDATE flight_log SET aircraft_id = :aircraft_id!, flight_date = :flight_date!, departure_airport = :departure_airport!, arrival_airport = :arrival_airport!, total_time = :total_time!, pic_time = :pic_time!, dual_received_time = :dual_received_time!, night_time = :night_time!, instrument_time = :instrument_time!, notes = :notes!, updated_at = NOW() WHERE id = :id! AND owner_signer_address = :owner_signer_address! AND status = 'active'"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE flight_log SET aircraft_id = :aircraft_id!, flight_date = :flight_date!, departure_airport = :departure_airport!, arrival_airport = :arrival_airport!, total_time = :total_time!, pic_time = :pic_time!, dual_received_time = :dual_received_time!, night_time = :night_time!, instrument_time = :instrument_time!, notes = :notes!, updated_at = NOW() WHERE id = :id! AND owner_signer_address = :owner_signer_address! AND status = 'active'
+ * ```
+ */
+export const updateFlightLog = new PreparedQuery<IUpdateFlightLogParams,IUpdateFlightLogResult>(updateFlightLogIR);
+
+
+/** 'VoidFlightLog' parameters type */
+export interface IVoidFlightLogParams {
+  id: number;
+  owner_signer_address: string;
+}
+
+/** 'VoidFlightLog' return type */
+export type IVoidFlightLogResult = void;
+
+/** 'VoidFlightLog' query type */
+export interface IVoidFlightLogQuery {
+  params: IVoidFlightLogParams;
+  result: IVoidFlightLogResult;
+}
+
+const voidFlightLogIR: any = {"usedParamSet":{"id":true,"owner_signer_address":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":71,"b":74}]},{"name":"owner_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":103,"b":124}]}],"statement":"UPDATE flight_log SET status = 'voided', updated_at = NOW() WHERE id = :id! AND owner_signer_address = :owner_signer_address! AND status = 'active'"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * UPDATE flight_log SET status = 'voided', updated_at = NOW() WHERE id = :id! AND owner_signer_address = :owner_signer_address! AND status = 'active'
+ * ```
+ */
+export const voidFlightLog = new PreparedQuery<IVoidFlightLogParams,IVoidFlightLogResult>(voidFlightLogIR);
+
+
+/** 'GetAllFlights' parameters type */
+export type IGetAllFlightsParams = void;
+
+/** 'GetAllFlights' return type */
+export interface IGetAllFlightsResult {
+  id: number;
+  owner_signer_address: string;
+  aircraft_id: number;
+  flight_date: Date;
+  departure_airport: string;
+  arrival_airport: string;
+  total_time: string;
+  pic_time: string;
+  dual_received_time: string;
+  night_time: string;
+  instrument_time: string;
+  notes: string;
+  status: string;
+  created_at: Date;
+  updated_at: Date;
+  block_height: number;
+}
+
+/** 'GetAllFlights' query type */
+export interface IGetAllFlightsQuery {
+  params: IGetAllFlightsParams;
+  result: IGetAllFlightsResult;
+}
+
+const getAllFlightsIR: any = {"usedParamSet":{},"params":[],"statement":"SELECT * FROM flight_log WHERE status = 'active' ORDER BY id DESC LIMIT 100"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT * FROM flight_log WHERE status = 'active' ORDER BY id DESC LIMIT 100
+ * ```
+ */
+export const getAllFlights = new PreparedQuery<IGetAllFlightsParams,IGetAllFlightsResult>(getAllFlightsIR);
+
+
+/** 'GetFlightById' parameters type */
+export interface IGetFlightByIdParams {
+  id: number;
+}
+
+/** 'GetFlightById' return type */
+export interface IGetFlightByIdResult {
+  id: number;
+  owner_signer_address: string;
+  aircraft_id: number;
+  flight_date: Date;
+  departure_airport: string;
+  arrival_airport: string;
+  total_time: string;
+  pic_time: string;
+  dual_received_time: string;
+  night_time: string;
+  instrument_time: string;
+  notes: string;
+  status: string;
+  created_at: Date;
+  updated_at: Date;
+  block_height: number;
+}
+
+/** 'GetFlightById' query type */
+export interface IGetFlightByIdQuery {
+  params: IGetFlightByIdParams;
+  result: IGetFlightByIdResult;
+}
+
+const getFlightByIdIR: any = {"usedParamSet":{"id":true},"params":[{"name":"id","required":true,"transform":{"type":"scalar"},"locs":[{"a":36,"b":39}]}],"statement":"SELECT * FROM flight_log WHERE id = :id!"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT * FROM flight_log WHERE id = :id!
+ * ```
+ */
+export const getFlightById = new PreparedQuery<IGetFlightByIdParams,IGetFlightByIdResult>(getFlightByIdIR);
+
+
+/** 'GetFlightsBySigner' parameters type */
+export interface IGetFlightsBySignerParams {
+  owner_signer_address: string;
+}
+
+/** 'GetFlightsBySigner' return type */
+export interface IGetFlightsBySignerResult {
+  id: number;
+  owner_signer_address: string;
+  aircraft_id: number;
+  flight_date: Date;
+  departure_airport: string;
+  arrival_airport: string;
+  total_time: string;
+  pic_time: string;
+  dual_received_time: string;
+  night_time: string;
+  instrument_time: string;
+  notes: string;
+  status: string;
+  created_at: Date;
+  updated_at: Date;
+  block_height: number;
+}
+
+/** 'GetFlightsBySigner' query type */
+export interface IGetFlightsBySignerQuery {
+  params: IGetFlightsBySignerParams;
+  result: IGetFlightsBySignerResult;
+}
+
+const getFlightsBySignerIR: any = {"usedParamSet":{"owner_signer_address":true},"params":[{"name":"owner_signer_address","required":true,"transform":{"type":"scalar"},"locs":[{"a":54,"b":75}]}],"statement":"SELECT * FROM flight_log WHERE owner_signer_address = :owner_signer_address! ORDER BY id DESC LIMIT 100"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT * FROM flight_log WHERE owner_signer_address = :owner_signer_address! ORDER BY id DESC LIMIT 100
+ * ```
+ */
+export const getFlightsBySigner = new PreparedQuery<IGetFlightsBySignerParams,IGetFlightsBySignerResult>(getFlightsBySignerIR);
+
+
+/** 'GetFlightsByAircraft' parameters type */
+export interface IGetFlightsByAircraftParams {
+  aircraft_id: number;
+}
+
+/** 'GetFlightsByAircraft' return type */
+export interface IGetFlightsByAircraftResult {
+  id: number;
+  owner_signer_address: string;
+  aircraft_id: number;
+  flight_date: Date;
+  departure_airport: string;
+  arrival_airport: string;
+  total_time: string;
+  pic_time: string;
+  dual_received_time: string;
+  night_time: string;
+  instrument_time: string;
+  notes: string;
+  status: string;
+  created_at: Date;
+  updated_at: Date;
+  block_height: number;
+}
+
+/** 'GetFlightsByAircraft' query type */
+export interface IGetFlightsByAircraftQuery {
+  params: IGetFlightsByAircraftParams;
+  result: IGetFlightsByAircraftResult;
+}
+
+const getFlightsByAircraftIR: any = {"usedParamSet":{"aircraft_id":true},"params":[{"name":"aircraft_id","required":true,"transform":{"type":"scalar"},"locs":[{"a":45,"b":57}]}],"statement":"SELECT * FROM flight_log WHERE aircraft_id = :aircraft_id! AND status = 'active' ORDER BY id DESC LIMIT 100"};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT * FROM flight_log WHERE aircraft_id = :aircraft_id! AND status = 'active' ORDER BY id DESC LIMIT 100
+ * ```
+ */
+export const getFlightsByAircraft = new PreparedQuery<IGetFlightsByAircraftParams,IGetFlightsByAircraftResult>(getFlightsByAircraftIR);
