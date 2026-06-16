@@ -25,7 +25,8 @@
 
     <main class="app-main">
         <nav class="tab-nav">
-            <button class="tab-btn active" data-tab="profile">Profile</button>
+            <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+            <button class="tab-btn" data-tab="profile">Profile</button>
             <button class="tab-btn" data-tab="aircraft">Aircraft</button>
             <button class="tab-btn" data-tab="flights">Flight Log</button>
             <button class="tab-btn" data-tab="training">Training</button>
@@ -33,8 +34,97 @@
             <button class="tab-btn" data-tab="marketplace">Marketplace</button>
         </nav>
 
+        <!-- Dashboard Tab -->
+        <section class="tab-pane active" id="tab-dashboard">
+            <div class="section-header">
+                <h2>Dashboard</h2>
+            </div>
+
+            <!-- Pilot Summary Card -->
+            <div class="dashboard-summary-card" id="dash-summary-card">
+                <div class="dash-pilot-name" id="dash-pilot-name">Loading...</div>
+                <div class="dash-pilot-meta">
+                    <span class="badge" id="dash-pilot-phase">—</span>
+                    <span class="dash-wallet" id="dash-wallet-addr">Not connected</span>
+                </div>
+            </div>
+
+            <!-- Quick Stats Row -->
+            <div class="dash-stats-row">
+                <div class="dash-stat">
+                    <div class="dash-stat-value" id="dash-stat-aircraft">—</div>
+                    <div class="dash-stat-label">Aircraft</div>
+                </div>
+                <div class="dash-stat">
+                    <div class="dash-stat-value" id="dash-stat-flights">—</div>
+                    <div class="dash-stat-label">Flights</div>
+                </div>
+                <div class="dash-stat">
+                    <div class="dash-stat-value" id="dash-stat-training">—</div>
+                    <div class="dash-stat-label">Training Records</div>
+                </div>
+                <div class="dash-stat">
+                    <div class="dash-stat-value" id="dash-stat-endorsements">—</div>
+                    <div class="dash-stat-label">Endorsements</div>
+                </div>
+            </div>
+
+            <div class="card-grid">
+                <!-- Progress Tracker -->
+                <div class="card">
+                    <div class="card-header">Pilot Progress</div>
+                    <div class="card-body">
+                        <div class="progress-tracker" id="dash-progress-tracker">
+                            <div class="progress-step" id="ps-profile">
+                                <span class="progress-icon">&#9675;</span>
+                                <span class="progress-label">Profile Created</span>
+                            </div>
+                            <div class="progress-step" id="ps-aircraft">
+                                <span class="progress-icon">&#9675;</span>
+                                <span class="progress-label">Aircraft Registered</span>
+                            </div>
+                            <div class="progress-step" id="ps-flight">
+                                <span class="progress-icon">&#9675;</span>
+                                <span class="progress-label">First Flight Logged</span>
+                            </div>
+                            <div class="progress-step" id="ps-training">
+                                <span class="progress-icon">&#9675;</span>
+                                <span class="progress-label">Training Record Created</span>
+                            </div>
+                            <div class="progress-step" id="ps-endorsement">
+                                <span class="progress-icon">&#9675;</span>
+                                <span class="progress-label">Endorsement Earned</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Next Recommended Action -->
+                <div class="card">
+                    <div class="card-header">Next Step</div>
+                    <div class="card-body">
+                        <div id="dash-next-action" class="dash-next-action">
+                            <div class="dash-next-label" id="dash-next-label">Loading...</div>
+                            <button class="btn btn-primary" id="dash-next-btn" style="display:none">Go &rarr;</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Feed -->
+                <div class="card card-wide">
+                    <div class="card-header">
+                        Recent Activity
+                        <button class="btn btn-sm btn-secondary" onclick="loadDashboard()">Refresh</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="dash-activity-feed" class="data-list"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Profile Tab -->
-        <section class="tab-pane active" id="tab-profile">
+        <section class="tab-pane" id="tab-profile">
             <div class="section-header">
                 <h2>Pilot Profile</h2>
             </div>
@@ -543,6 +633,7 @@
                 document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
                 btn.classList.add("active");
                 document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+                if (btn.dataset.tab === "dashboard") loadDashboard();
                 if (btn.dataset.tab === "flights") populateAircraftSelector();
                 if (btn.dataset.tab === "training") populateFlightSelector();
                 if (btn.dataset.tab === "endorsements") populateTrainingSelector();
@@ -609,7 +700,149 @@
             if (current) select.value = current;
         }
 
+        async function loadDashboard() {
+            // Fetch all data in parallel
+            const [profilesRes, aircraftRes, flightsRes, trainingRes, endorsementsRes] = await Promise.all([
+                fetch(`${API}/api/profiles`).then(r => r.json()).catch(() => ({ profiles: [] })),
+                fetch(`${API}/api/aircraft`).then(r => r.json()).catch(() => ({ aircraft: [] })),
+                fetch(`${API}/api/flights`).then(r => r.json()).catch(() => ({ flights: [] })),
+                fetch(`${API}/api/training-records`).then(r => r.json()).catch(() => ({ trainingRecords: [] })),
+                fetch(`${API}/api/endorsements`).then(r => r.json()).catch(() => ({ endorsements: [] })),
+            ]);
+
+            const profiles     = profilesRes.profiles || [];
+            const aircraft     = (aircraftRes.aircraft || []).filter(a => a.status !== "inactive");
+            const flights      = (flightsRes.flights || []).filter(f => f.status !== "void");
+            const training     = trainingRes.trainingRecords || [];
+            const endorsements = endorsementsRes.endorsements || [];
+
+            // ── Pilot Summary Card ──
+            const profile = profiles[0];
+            document.getElementById("dash-pilot-name").textContent =
+                profile ? profile.display_name : "— Set up your profile";
+            document.getElementById("dash-pilot-phase").textContent =
+                profile ? profile.pilot_phase : "unknown";
+
+            const addrEl = document.getElementById("dash-wallet-addr");
+            if (window._walletAddress) {
+                addrEl.textContent = window._walletAddress.slice(0, 20) + "...";
+            } else {
+                addrEl.textContent = "Wallet not connected";
+            }
+
+            // ── Quick Stats ──
+            document.getElementById("dash-stat-aircraft").textContent    = aircraft.length;
+            document.getElementById("dash-stat-flights").textContent     = flights.length;
+            document.getElementById("dash-stat-training").textContent    = training.length;
+            document.getElementById("dash-stat-endorsements").textContent = endorsements.length;
+
+            // ── Progress Tracker ──
+            function setStep(id, done) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.classList.toggle("done", done);
+                el.querySelector(".progress-icon").innerHTML = done ? "&#10003;" : "&#9675;";
+            }
+            setStep("ps-profile",     profiles.length > 0);
+            setStep("ps-aircraft",    aircraft.length > 0);
+            setStep("ps-flight",      flights.length > 0);
+            setStep("ps-training",    training.length > 0);
+            setStep("ps-endorsement", endorsements.length > 0);
+
+            // ── Next Recommended Action ──
+            const nextLabel = document.getElementById("dash-next-label");
+            const nextBtn   = document.getElementById("dash-next-btn");
+            let nextTab = null;
+            let nextText = "";
+
+            if (profiles.length === 0) {
+                nextText = "Create Your Profile";
+                nextTab  = "profile";
+            } else if (aircraft.length === 0) {
+                nextText = "Register Your First Aircraft";
+                nextTab  = "aircraft";
+            } else if (flights.length === 0) {
+                nextText = "Log Your First Flight";
+                nextTab  = "flights";
+            } else if (training.length === 0) {
+                nextText = "Create a Training Record";
+                nextTab  = "training";
+            } else if (endorsements.length === 0) {
+                nextText = "Request an Endorsement";
+                nextTab  = "endorsements";
+            } else {
+                nextText = "You\u2019re all caught up. Keep logging flights!";
+                nextTab  = null;
+            }
+
+            nextLabel.textContent = nextText;
+            if (nextTab) {
+                nextBtn.style.display = "inline-block";
+                nextBtn.onclick = () => switchTab(nextTab);
+            } else {
+                nextBtn.style.display = "none";
+            }
+
+            // ── Recent Activity Feed ──
+            const activities = [];
+
+            for (const p of profiles) {
+                activities.push({
+                    ts: p.created_at || "0",
+                    type: "Profile",
+                    label: p.display_name,
+                    meta: p.pilot_phase,
+                });
+            }
+            for (const a of aircraft) {
+                activities.push({
+                    ts: a.created_at || "0",
+                    type: "Aircraft Registered",
+                    label: a.tail_number,
+                    meta: `${a.manufacturer} ${a.model} (${a.year})`,
+                });
+            }
+            for (const f of flights) {
+                activities.push({
+                    ts: f.flight_date || f.created_at || "0",
+                    type: "Flight Logged",
+                    label: `${f.departure_airport} \u2192 ${f.arrival_airport}`,
+                    meta: `${f.total_time}h total`,
+                });
+            }
+            for (const t of training) {
+                activities.push({
+                    ts: t.created_at || "0",
+                    type: "Training Record",
+                    label: t.training_type,
+                    meta: t.status,
+                });
+            }
+            for (const e of endorsements) {
+                activities.push({
+                    ts: e.created_at || "0",
+                    type: "Endorsement",
+                    label: e.endorsement_type,
+                    meta: e.status,
+                });
+            }
+
+            activities.sort((a, b) => String(b.ts).localeCompare(String(a.ts)));
+            const feed = document.getElementById("dash-activity-feed");
+            if (activities.length === 0) {
+                feed.innerHTML = "<p class='empty-state'>No activity yet. Start by creating your profile.</p>";
+            } else {
+                feed.innerHTML = activities.slice(0, 10).map(a => `
+                    <div class="data-item">
+                        <div class="data-item-title">${a.type} &mdash; ${a.label}</div>
+                        <div class="data-item-meta">${a.meta}</div>
+                    </div>
+                `).join("");
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
+            loadDashboard();
             document.getElementById("fl-aircraft-select").addEventListener("change", function () {
                 const id = parseInt(this.value, 10);
                 const preview = document.getElementById("fl-aircraft-preview");
@@ -708,12 +941,18 @@
 
         async function walletConnect() {
             const wallet = await effectstream.login();
+            window._walletAddress = wallet.address || null;
             document.getElementById("address").innerText = wallet.address
                 ? "Connected: " + wallet.address.slice(0, 16) + "..."
                 : "Connected";
             document.getElementById("address").classList.add("connected");
             document.getElementById("signer-info").innerText =
                 wallet.signerAddress ? "EVM key: " + wallet.signerAddress : "";
+            // Refresh dashboard wallet display if we're on it
+            const dashWallet = document.getElementById("dash-wallet-addr");
+            if (dashWallet && wallet.address) {
+                dashWallet.textContent = wallet.address.slice(0, 20) + "...";
+            }
         }
 
         async function createProfile() {
