@@ -7,7 +7,13 @@ const root = import.meta.dirname!;
 
 export default {
   processes: [
-    ...launchPglite(),
+    ...launchPglite().map((process) => ({
+    ...process,
+    env: {
+      ...(process.env ?? {}),
+      PGLITE_DATA_DIR: ".data/pglite",
+    },
+  })),
     ...launchEvm("@pilotlog-sandbox/contracts-evm", {
       cwd: path.join(root, "packages/contracts-evm"),
     }),
@@ -18,7 +24,10 @@ export default {
       args: ["run", "packages/node/main.dev.ts"],
       waitToExit: false,
       type: "system-dependency",
-      env: { PGLITE: "true" },
+      env: {
+        PGLITE: "true",
+        PGLITE_DATA_DIR: ".data/pglite",
+      },
       dependsOn: [DbNames.PGLITE_WAIT, EvmNames.GENERATE_MOD],
     },
 

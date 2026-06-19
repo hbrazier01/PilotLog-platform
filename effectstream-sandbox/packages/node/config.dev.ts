@@ -7,6 +7,8 @@ import {
 import { PrimitiveTypeEVMEffectstreamL2 } from "@effectstream/sm/builtin";
 import { hardhat } from "viem/chains";
 
+const DEV_CHAIN_START_TIME = 1781731886465;
+
 export const config = new ConfigBuilder()
   .setNamespace((builder) => builder.setSecurityNamespace("minimal"))
   .buildNetworks((builder) =>
@@ -14,7 +16,7 @@ export const config = new ConfigBuilder()
       .addNetwork({
         name: "ntp",
         type: ConfigNetworkType.NTP,
-        startTime: new Date().getTime(),
+        startTime: DEV_CHAIN_START_TIME,
         blockTimeMS: 1000,
       })
       .addViemNetwork({ ...hardhat, name: "evmMain" })

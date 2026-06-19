@@ -24,15 +24,23 @@ const BATCHER_URL = "http://localhost:3333";
 let wallet = null;
 let mnAddr = null;
 
-// ── Config ────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Config
+// ─────────────────────────────────────────────────────────────
 
 let effectstreamConfig = null;
 
 async function loadConfig() {
   if (effectstreamConfig) return effectstreamConfig;
+
   const res = await fetch("/api/contract-address");
-  if (!res.ok) throw new Error(`/api/contract-address failed (${res.status})`);
+
+  if (!res.ok) {
+    throw new Error(`/api/contract-address failed (${res.status})`);
+  }
+
   const { contractAddress } = await res.json();
+
   effectstreamConfig = new EffectstreamConfig(
     "minimal",
     "mainEvmRPC",
@@ -40,15 +48,18 @@ async function loadConfig() {
     hardhat,
     undefined,
     BATCHER_URL,
-    true, // preferBatchedMode — required for Midnight wallet
+    true
   );
+
   return effectstreamConfig;
 }
 
-// ── Login ─────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Login
+// ─────────────────────────────────────────────────────────────
 
 async function login() {
-  const config = await loadConfig();
+  await loadConfig();
 
   const result = await walletLogin({
     mode: WalletMode.Midnight,
@@ -56,49 +67,167 @@ async function login() {
   });
 
   if (!result.success) {
-    throw new Error("Midnight wallet login failed: " + (result.errorMessage ?? "unknown"));
+    wallet = null;
+    mnAddr = null;
+
+    throw new Error(
+      "Midnight wallet login failed: " +
+        (result.errorMessage ?? "unknown")
+    );
   }
 
   wallet = result.result;
   mnAddr = wallet.walletAddress;
-  console.log("[effectstream] Midnight wallet connected. address:", mnAddr);
 
-  return { address: mnAddr, signerAddress: null };
+  console.log(
+    "[effectstream] Midnight wallet connected. address:",
+    mnAddr
+  );
+
+  return {
+    address: mnAddr,
+    signerAddress: null,
+  };
 }
 
-// ── Action submission ─────────────────────────────────────────────────────────
+/**
+ * Force a fresh Midnight connection before every transaction.
+ *
+ * Lace / Midnight sometimes keeps a stale wallet object alive even
+ * though the underlying authenticator channel has been closed.
+ *
+ * Re-authenticating here prevents:
+ *   Remote API with channel 'midnight-authenticator' was shutdown
+ *   object can no longer be used
+ */
+async function ensureWalletReady() {
+  if (!wallet || !mnAddr) {
+    return await login();
+  }
 
-async function sendCreateProfile(displayName, pilotPhase, notes) {
-  if (!wallet) throw new Error("Call effectstream.login() first");
+  try {
+    return await login();
+  } catch (error) {
+    wallet = null;
+    mnAddr = null;
+    throw error;
+  }
+}
+
+function isWalletStaleOrLockedError(error) {
+  const message = String(
+    error?.message ??
+      error?.reason ??
+      error ??
+      ""
+  ).toLowerCase();
+
+  return (
+    message.includes("wallet is locked") ||
+    message.includes("object can no longer be used") ||
+    message.includes("remote api") ||
+    message.includes("channel") ||
+    message.includes("rejected")
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Transaction helper
+// ─────────────────────────────────────────────────────────────
+
+async function executeTransaction(actionArray) {
+  await ensureWalletReady();
 
   const config = await loadConfig();
-  const actionArray = ["create_profile", displayName, pilotPhase, notes ?? ""];
-  const result = await sendTransaction(wallet, actionArray, config, "wait-receipt");
-  console.log("[tx-debug] create_profile result:", result);
-  return {
-    success: true,
-    type: result.type,
-    address: mnAddr,
-    ...result,
-  };
+
+  try {
+    const result = await sendTransaction(
+      wallet,
+      actionArray,
+      config,
+      "wait-receipt"
+    );
+
+    console.log(
+      "[tx-debug]",
+      actionArray[0],
+      "result:",
+      result
+    );
+
+    return {
+      success: true,
+      type: result.type,
+      address: mnAddr,
+      ...result,
+    };
+  } catch (error) {
+    if (!isWalletStaleOrLockedError(error)) {
+      throw error;
+    }
+
+    console.warn(
+      "[effectstream] Wallet session expired. Reconnecting..."
+    );
+
+    wallet = null;
+    mnAddr = null;
+
+    await ensureWalletReady();
+
+    const retryResult = await sendTransaction(
+      wallet,
+      actionArray,
+      config,
+      "wait-receipt"
+    );
+
+    console.log(
+      "[tx-debug] retry",
+      actionArray[0],
+      "result:",
+      retryResult
+    );
+
+    return {
+      success: true,
+      type: retryResult.type,
+      address: mnAddr,
+      ...retryResult,
+    };
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// PilotLog actions
+// ─────────────────────────────────────────────────────────────
+
+async function sendCreateProfile(
+  displayName,
+  pilotPhase,
+  notes
+) {
+  return await executeTransaction([
+    "create_profile",
+    displayName,
+    pilotPhase,
+    notes ?? "",
+  ]);
 }
 
 async function sendAction(actionArray) {
-  if (!wallet) throw new Error("Call effectstream.login() first");
-  const config = await loadConfig();
-  const result = await sendTransaction(wallet, actionArray, config, "wait-receipt");
-  console.log("[tx-debug]", actionArray[0], "result:", result);
-  return {
-    success: true,
-    type: result.type,
-    address: mnAddr,
-    ...result,
-  };
+  return await executeTransaction(actionArray);
 }
+
+// ─────────────────────────────────────────────────────────────
+// Public API
+// ─────────────────────────────────────────────────────────────
 
 window.effectstream = {
   login,
   sendCreateProfile,
   sendAction,
-  getWallet: () => ({ address: mnAddr }),
+  getWallet: () => ({
+    address: mnAddr,
+  }),
 };

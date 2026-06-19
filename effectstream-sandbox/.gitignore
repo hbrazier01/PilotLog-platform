@@ -6,3 +6,5 @@ packages/contracts-evm/build/
 packages/contracts-evm/remappings.txt
 packages/frontend/dist/
 bun.lock
+.data/ 
+packages/batcher/batcher-data/

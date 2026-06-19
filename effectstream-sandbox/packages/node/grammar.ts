@@ -75,7 +75,7 @@ export const grammar = {
   ],
 
   create_training_record: [
-    ["instructorSignerAddress", Type.String({ maxLength: 64 })],
+    ["instructorSignerAddress", Type.String({ maxLength: 128 })],
     ["flightLogId", Type.Integer({ minimum: 1 })],
     ["trainingType", Type.String({ maxLength: 64 })],
     ["notes", Type.String({ maxLength: 1024 })],
@@ -91,7 +91,7 @@ export const grammar = {
 
   create_endorsement: [
     ["trainingRecordId", Type.Integer({ minimum: 1 })],
-    ["endorsementType", Type.String({ maxLength: 64 })],
+    ["endorsementType", Type.String({ maxLength: 128 })],
     ["notes", Type.String({ maxLength: 1024 })],
   ],
   approve_endorsement: [
