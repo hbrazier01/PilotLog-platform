@@ -1,8 +1,6 @@
 {
   "$schema": "https://railpack.com/schema.json",
-  "install": {
-    "cmd": "bun install"
-  },
+  "installCommand": "bun install",
   "deploy": {
     "startCommand": "bun run dev"
   }
